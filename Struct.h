@@ -1,0 +1,146 @@
+#ifndef Struct
+#define Struct
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <setjmp.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <sys/wait.h>
+
+// The libraries included here will be common to all files. If a particular file requires additional libraries they will be imported on the fly.
+
+#define BUFFERSIZE 100; //will be used by the shared memory of the keyboard and CRT processes.
+#define MAXCHAR 80	 // specifies the buffer length for the shared memory.
+
+#define alarmDelayTime 	100000 //delays 10 seconds
+#define alarmFrequency  100000  // set the frequency of the signal to 100 ms. It is a #define since these will not change at all.
+
+#define HIGH_PRIORITY 0
+#define MED_PRIORITY  1
+#define LOW_PRIORITY  2
+#define NULL_PRIORITY 3				//Presents the various priorities in the RTX.
+
+#define EXECUTING 0
+#define READY 1
+#define BLOCKED_MSG_ALLOCATE 2
+#define BLOCKED_MSG_RECEIVE 3
+#define BLOCKED_SLEEPING 4 
+#define IPROCESS 5   //	Specifies the different states of the PCBs. 
+
+#define MSGTYPEDATA 0
+#define MSGTYPETIMER 1  //	defines the various types of messages ( regular vs timing message)
+//#define MSGTYPEACKNOWLEDGE 2 and additional ones. 
+
+
+#define PIDUserProcessA 0
+#define PIDUserProcessB 1
+#define PIDUserProcessC 2
+#define PIDcci 3
+#define PIDNullProcess 4
+#define PIDiProcessKeyboard 5
+#define PIDiProcessCRT 6
+#define PIDiProcessTimer 7
+
+
+struct Buffer  * keyboardSharedMemPointer;		// pointer to structure that is the shared memory
+int keyboardChildPID;				// pid of keyboard child process
+caddr_t keyboardmmap_ptr; //unsure of what caddr_t means.
+int keyboardFileIdentifier;
+
+struct Buffer  * CRTSharedMemPointer;		// pointer to structure that is the shared memory
+int CRTChildPID;				// pid of keyboard child process
+caddr_t CRTmmap_ptr; //unsure of what caddr_t means.
+int CRTFileIdentifier;
+
+char * keyboardFilename;  //the name of the shared_memory file
+char * CRTFilename;
+
+int absoluteTime;
+int relativeTime;
+int displayWallClock;
+
+int sendTraceBuffer[16][3];
+int receiveTraceBuffer[16][3]; // for the time being the trace buffers will be 2 dimensional arrays  but these could later change to an array of structs.
+
+int receiveTraceBufferIndexHead;
+int receiveTraceBufferIndexTail;
+
+int sendTraceBufferIndexHead;
+int sendTraceBufferIndexTail; // for the trace buffers we need to have a head and tail pointers since we will be using a circular array to print the last 16 messages.
+
+struct PCB* ptrCurrentExecuting; //will point to the currently executing Process.
+
+struct PCB* ptrPCBList; //ptr that will link to the PCB list (which will remain somewhat static once initialized
+struct PCB* ptrPCBListTail; //this tail ptr may or may not be required.
+
+struct PCB* ptrPCBReadyNull; // ptrs to the various priority queues for PCBs that are READY. for the nullPriority we will only have one process there.
+struct PCB* ptrPCBReadyNullTail;
+
+struct PCB* ptrPCBReadyLow;
+struct PCB* ptrPCBReadyLowTail;
+
+struct PCB* ptrPCBReadyMed;
+struct PCB* ptrPCBReadyMedTail;
+
+struct PCB* ptrPCBReadyHigh;
+struct PCB* ptrPCBReadyHighTail;
+
+/*The head and tail ptrs will be used the head will be used to dequeue from the list and the tail will be used to enqueue onto the list. (we could change this into an array if required if it becomes very messy)
+*/
+
+struct PCB* ptrPCBBlockedReceive;
+struct PCB* ptrPCBBlockedReceiveTail; //pointer to the blocked on message receive queue.
+
+struct PCB* ptrPCBBlockedAllocate;
+struct PCB* ptrPCBBlockedAllocateTail; //pointer to the blocked on envelope allocate receive queue.
+
+struct messageEnvelope* ptrMessage;
+struct messageEnvelope* ptrMessageTail;  //will be used as pointers to the head and tail of the messageEnvelope queue. The tail will be used to add
+
+struct messageEnvelope* ptrTimingList; // will be a  pointer to a linked list that contains the envelopes for the timing queue.
+struct PCB* ptrPCBTiming; // THE PCB OF THE PROCESSES THAT ARE SLEEPING WILL BE PLACED ON A TIMING QUEUE IN A "BLOCKED STATE"
+
+
+
+struct Buffer{
+	int completedFlag;
+	char data[MAXCHAR];
+	int bufferLength;
+};
+
+struct messageEnvelope
+{
+	struct messageEnvelope * ptrNextMessage; //will point to the next messsage, if it is in an inbox queue or in the free memory queue.
+	int PIDSender; //int to track the sending process .
+	int PIDReceiver; // int to track the receiving process.
+	int messageType; //NOT sure of what type of messages we will have. we will probably use global variables as welll.
+	char messageTimeStamp[10]; // contain the time when the message was sent.
+	char messageText[100];  //contains the actual message. It will be in string format and it could subsequently be parsed.
+};
+
+struct PCB{
+
+	int PID; //will contain the PID as defined in the initialization table
+	int PCBState; //will contain an int indicating their running state. Which will also change.
+	int processPriority; //Will contain the priority of each process.
+
+	void (*programCounter)(); // will contain a ptr to the initial start of the process. hence it is a ptr to a function (THIS MAY BE WRONG)
+	char * ptrStack; //contain a ptr to the stack. Unsure of the type  TODO.
+
+
+	struct PCB* ptrNextPCBList; //will link to the next PCB in the main PCB List
+	struct PCB* ptrNextPCBQueue; //will link to the next PCB in whatever queue they may be (running/blocked on resource/executing)
+
+	struct messageEnvelope* ptrMessageInboxHead;
+	struct messageEnvelope* ptrMessageInboxTail; //links to inbox queue of message envelopes the tail may not be required.
+
+	jmp_buf contextBuffer;  // Used for process switching
+
+};
+#endif
+
