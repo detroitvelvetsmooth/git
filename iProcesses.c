@@ -13,18 +13,26 @@ void wallClock(){
 
 void iProcessAlarm(){
 
-absoluteTime++;
-
-	//check inbox for sleep requests
-	//enqeue sleep request
-	//minus sleep time
-	//dequeue first msg of sleep time queue if zeroKeyboard I_proc must:
-	//send msg to sleeping process
+	absoluteTime++;
+	/*messageEnvelope* env = NULL;
+	env = messageReceive();
+	if (env != NULL){//if sleep request appears
+		sqEnqueue(env->PIDsender,env->msgType);//requires iteration through main PCB list, m
+		}
+	blockSleep.head->ticks --;
+	if (blockSleep.head->ticks <= 0)
 	
-//&&displayWallClock ==1
- if(absoluteTime%10 ==0) //only displays the wall clock if the CCI demanded it. 
- { wallClock();
- }
+	
+		//check inbox for sleep requests
+		//enqeue sleep request
+		//minus sleep time
+		//dequeue first msg of sleep time queue if zeroKeyboard I_proc must:
+		//send msg to sleeping process
+	*/
+	//&&displayWallClock ==1
+	 if(absoluteTime%10 ==0) //only displays the wall clock if the CCI demanded it. 
+	 { wallClock();
+	 }
 
 }
 
@@ -42,27 +50,24 @@ int modInt = 0;
 
 void iProcessKeyboard(){
 
-//create temp *env pointer
-//reads its inbox (loop til empty) msg_receive
-//check if memory is ready to be read
-//if yes, copies data from buffer into env
-	//sends it off to requesting process (sender of env) type CONESOLE_INPUT
-//if no, ignores request (but this shouldn't happen)
-
 if((*keyboardSharedMemPointer).completedFlag == 1){
-
-	char dataBuffer[MAXCHAR];
-	int i;
-
-	for(i = 0; i < MAXCHAR; i++){
-	dataBuffer[i] = (*keyboardSharedMemPointer).data[i];
-	}	
-
-	(*keyboardSharedMemPointer).completedFlag = 0;
-	(*keyboardSharedMemPointer).bufferLength = 0;
-		printf("Found in Data Buffer: %s\n",dataBuffer);
-  }
-  
+	messageEnvelope* env = NULL;
+	env = k_messageReceive();
+		
+		if (env != NULL){//should we loop til inbox is empty? CCI can only ever send 1 request,then it gets blocked
+		int bufferLength = (*keyboardSharedMemPointer).bufferLength;
+		for(int i = 0; i < bufferLength; i++){//assume env->data is a char[MAXCHAR]?
+		env->data[i] = (*keyboardSharedMemPointer).data[i];
+		}
+		env->type = CONSOLE_INPUT //enumerated?
+		k_messageSend(env, env->sender_pid);
+		(*keyboardSharedMemPointer).completedFlag = 0;
+		(*keyboardSharedMemPointer).bufferLength = 0;
+		//printf("Found in Data Buffer: %s\n",dataBuffer);
+		}
+	}else{
+		k_messageDeallocate(env);//if mem not ready, ignore env; will never happen
+		}
 }
 				
 
