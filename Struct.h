@@ -119,7 +119,6 @@ struct messageEnvelope
 	int PIDSender; //int to track the sending process .
 	int PIDReceiver; // int to track the receiving process.
 	int messageType; //NOT sure of what type of messages we will have. we will probably use global variables as welll.
-	int ticks;//Brian added this to test something.. but we should keep it!
 	char messageTimeStamp[10]; // contain the time when the message was sent.
 	char messageText[100];  //contains the actual message. It will be in string format and it could subsequently be parsed.
 };
