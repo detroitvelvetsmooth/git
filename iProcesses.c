@@ -1,4 +1,10 @@
 #include "Struct.h"
+#include "Processes.h"
+
+#define WAKEUP 0 ////This enumeration is preliminary if made up on the spot
+#define DISPLAY_ACK 1//just so it would compile-ish
+#define CONSOLE_INPUT 2
+
 
 
 void wallClock(){
@@ -11,58 +17,79 @@ void wallClock(){
 	printf("%02d:%02d:%02d\n",hour,min,sec);  //THIS WILL BE MODIFIED, INSTEAD OF PRINTF, IT WILL COMMUNICATE WITH THE CRT PROCESS (SOMEHOW) 
 }
 
+
+
 void iProcessAlarm(){
 
-absoluteTime++;
-
-	//check inbox for sleep requests
-	//enqeue sleep request
-	//minus sleep time
-	//dequeue first msg of sleep time queue if zeroKeyboard I_proc must:
-	//send msg to sleeping process
-	
-//&&displayWallClock ==1
- if(absoluteTime%10 ==0) //only displays the wall clock if the CCI demanded it. 
- { wallClock();
- }
+	absoluteTime++;
+	messageEnvelope* env = NULL;
+	env = k_receive_message();
+	if (env != NULL){//if sleep request appears
+		sqEnqueue(env->PIDSender,env);//still gotta make this funtion.. does it iterate through global PCB ptr
+		//What does it do with the env?
+		}
+	if (ptrPCBTiming != NULL){
+		ptrTimingList->data --;//does int ticks var exist in PCBs? How do env keep track??TODO
+		if (ptrPCBTiming->ticks <= 0){//what if two are 0? do-while?
+			env = sqDequeue();//returns env ptr
+			env->messageType = WAKEUP;//enumerated?
+			k_send_message(env->PIDSender,env);
+			}
+		}	
+	//&&displayWallClock ==1
+	 if(absoluteTime%10 ==0) //only displays the wall clock if the CCI demanded it
+	 { wallClock();
+	 }
 
 }
 
 
 
-void iProcessCRT(){}
+
+
+void iProcessCRT(){
+
+if((*CRTSharedMemPointer).completedFlag == 1){//== 1 or 0?? Ask Andy
+	messageEnvelope* env = NULL;
+	env = k_receive_message();//primitive name
+	if (env != NULL){ //which it should always be the case
+		int i;
+		while(env->data[i] != NULL){//how can I extract data length? Print MAXCHAR everytime?TODO while loop logic
+			(*CRTSharedMemPointer).data[i] = env->data[i];
+			i++;
+			}
+	env->messageType = DISPLAY_ACK; //enumerated?
+	k_send_message(env->PIDSender,env);//or do we dealloacate msg?
+	(*CRTSharedMemPointer).bufferLength = i;
+	(*CRTSharedMemPointer).completedFlag = 0;//or 1??
+		}
+	}
+}
 
 
 
-/*
-//Global Stuffs
-char A[5];//to test printf of a string
-int modInt = 0;
-*/
+
 
 void iProcessKeyboard(){
 
-//create temp *env pointer
-//reads its inbox (loop til empty) msg_receive
-//check if memory is ready to be read
-//if yes, copies data from buffer into env
-	//sends it off to requesting process (sender of env) type CONESOLE_INPUT
-//if no, ignores request (but this shouldn't happen)
-
 if((*keyboardSharedMemPointer).completedFlag == 1){
-
-	char dataBuffer[MAXCHAR];
-	int i;
-
-	for(i = 0; i < MAXCHAR; i++){
-	dataBuffer[i] = (*keyboardSharedMemPointer).data[i];
-	}	
-
-	(*keyboardSharedMemPointer).completedFlag = 0;
-	(*keyboardSharedMemPointer).bufferLength = 0;
-		printf("Found in Data Buffer: %s\n",dataBuffer);
-  }
-  
+	messageEnvelope* env = NULL;
+	env = k_receive_message();
+		
+		if (env != NULL){//should we loop til inbox is empty? CCI can only ever send 1 request,then it gets blocked
+		int bufferLength = (*keyboardSharedMemPointer).bufferLength;
+		for(int i = 0; i < bufferLength; i++){//assume env->data is a char[MAXCHAR]?
+		env->data[i] = (*keyboardSharedMemPointer).data[i];
+		}
+		env->messageType = CONSOLE_INPUT; //enumerated?
+		k_send_message(env->PIDSender, env);
+		(*keyboardSharedMemPointer).completedFlag = 0;
+		(*keyboardSharedMemPointer).bufferLength = 0;
+		//printf("Found in Data Buffer: %s\n",dataBuffer);
+		}
+	}else{
+		k_release_message_env(env);//if mem not ready, ignore env; will never happen
+		}
 }
 				
 
