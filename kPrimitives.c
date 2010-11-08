@@ -260,4 +260,65 @@ int k_terminate()
     return 1;
 }
 
+//////////////// PRIMITIVE SUPPORT FUNCTIONS /////////////////////////
+
+int Enqueue(struct PCB* ptr,struct nodePCB* Q){//general enqueue function
+    if(Q == NULL)
+         return -1;
+	if(Q->queueHead == NULL){//Queue empty case
+		Q->queueHead = ptr;
+		Q->queueTail = ptr;
+	}
+	else{
+	     ptr->ptrNextnodePCB = NULL;
+	     Q->queueTail->ptrNextnodePCB = ptr;
+         Q->queueTail = ptr;
+    }
+	return 1;
+}
+
+struct PCB* Dequeue(struct nodePCB* Q){
+	if(Q->queueHead == NULL)//Queue empty case
+		return NULL;
+	struct PCB* returnPCB;
+	returnPCB = Q->queueHead;
+	if(Q->queueHead == Q->queueTail)
+        Q->queueTail = NULL;
+    Q->queueHead = returnPCB->ptrNextnodePCB;
+    returnPCB->ptrNextnodePCB = NULL;
+	return returnPCB;
+}
+
+struct PCB* BlockedOnReceiveDequeue(int PIDTo){//this should work...
+	struct nodePCB* Q;
+	Q = BlockedOnReceiveQ;
+	struct PCB* returnPCB;
+    struct PCB* temp;
+    returnPCB = Q->queueHead;
+		if(Q->queueHead == NULL){//special case: Queue empty case
+             return NULL;
+		}
+		if(Q->queueHead->PID == PIDTo){//special case: first element
+			Q->queueHead = Q->head->ptrNextnodePCB;
+			if(Q->queueHead == NULL)
+                Q->queueTail = NULL;
+            return returnPCB;
+		}
+		if(Q->queueHead == Q->queueTail)
+            return NULL; //Q of length 1.
+        temp = returnPCB;
+		while (!(temp->ptrNextnodePCB==NULL)){//general case iteration
+			if(temp->ptrNextnodePCB->PID == PIDTo){ //Found the node
+			    returnPCB=temp->ptrNextnodePCB; //Node to return
+				temp->ptrNextnodePCB = temp->ptrNextnodePCB->ptrNextnodePCB; //Jump node
+				if(temp->ptrNextnodePCB == NULL){//special case: last element
+					Q->queueTail = returnPCB;
+				}
+				return returnPCB;
+				}
+			temp = temp->ptrNextnodePCB;
+			}
+	return NULL;//if element is not in Queue.
+}
+
 

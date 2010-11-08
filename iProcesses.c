@@ -32,7 +32,7 @@ void iProcessAlarm(){
 		ptrTimingList->data --;//does int ticks var exist in PCBs? How do env keep track??TODO
 		if (ptrPCBTiming->ticks <= 0){//what if two are 0? do-while?
 			env = sqDequeue();//returns env ptr
-			env->messageType = WAKEUP;//enumerated?
+			env->messageType = MSGTYPEWAKEUP;//enumerated?
 			k_send_message(env->PIDSender,env);
 			}
 		}	
@@ -92,34 +92,6 @@ if((*keyboardSharedMemPointer).completedFlag == 1){
 		k_release_message_env(env);//if mem not ready, ignore env; will never happen
 		}
 }
-				
-
-
-/*
-int main() {    //the Main just tests random crap; don't worry about it
-printf ("Howdy, World.\n");
-printf ("This is your first LINUX .c compile.\n");
-
-gcc while(true){
-		for (int i=0; i<25000000; i++){ //this is approx delay of 100ms
-		}
-	iProcessAlarm();
-}
-A[0] = 'a';
-A[1] = 'b';
-A[2] = 'c';
-A[3] = 'd';
-A[4] = 'e';
-
-char B[5];
-for(int i=0; i<5; i++){
- B[i] = A[i]; }
-
-printf("%s\n",B);
-return 0;
-}
-
-*/
 
 
 
