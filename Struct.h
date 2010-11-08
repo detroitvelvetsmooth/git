@@ -20,6 +20,9 @@
 #define alarmDelayTime 	100000 //delays 10 seconds
 #define alarmFrequency  100000  // set the frequency of the signal to 100 ms. It is a #define since these will not change at all.
 
+#define numProcesses 5 //SPECIFIES NUMBER OF PROCESSES THAT REQUIRE CONTEXT INITIALIZATION (all minus iprocess)
+#define numProcessesTotal 8
+
 #define HIGH_PRIORITY 0
 #define MED_PRIORITY  1
 #define LOW_PRIORITY  2
@@ -33,10 +36,10 @@
 #define IPROCESS 5   //	Specifies the different states of the PCBs. 
 
 #define MSGTYPEDATA 0
-#define MSGTYPECOUNT 2
-#define MSGTYPESLEEP 3
-#define MSGTYPEACK 4
-#define MSGTYPEWAKEUP 5
+#define MSGTYPECOUNT 1
+#define MSGTYPESLEEP 2
+#define MSGTYPEACK 3
+#define MSGTYPEWAKEUP 4
 
 #define PIDUserProcessA 0
 #define PIDUserProcessB 1
@@ -67,6 +70,8 @@ char * CRTFilename;
 int absoluteTime;
 int relativeTime;
 int displayWallClock;
+
+int atomic_count;
 
 struct messageEnvelope* ptrTimingList; // will be a  pointer to a linked list that contains the envelopes for the timing queu
 

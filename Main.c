@@ -15,6 +15,7 @@ absoluteTime = 0;
 relativeTime = 0; // the wallclock will initially commence at the same time as the absoluteTime
 displayWallClock= 0;
 
+atomic_count = 0;
 ptrTimingList=NULL; // pointer to messages that have the timing countdown. 
 
 //////////////// TRACE BUFFERS /////////////////////

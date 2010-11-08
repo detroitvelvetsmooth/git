@@ -33,12 +33,19 @@ struct messageEnvelope* k_receive_message( );
 int  k_get_console_chars( struct messageEnvelope * temp );
 int  k_send_console_chars(struct messageEnvelope * temp );
 
-/////////////TO BE WRITTEN //////////////
-void atomic(int on);
-void release_processor();
-void requestSleep();
+int  release_processor();
+int  request_process_status(struct messageEnvelope * temp );
+int  change_priority(int new_priority, int targetID); 
+int  request_delay(int delay, int wakeup_code, struct messageEnvelope * temp);
+int k_terminate();
 
 struct PCB * getPCB(int findPID);
+void atomic(int on);
+
+
+/////////////TO BE WRITTEN //////////////
+void requestSleep();
+
 
 
 

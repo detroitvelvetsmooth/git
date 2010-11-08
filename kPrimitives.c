@@ -146,11 +146,26 @@ int  k_send_console_chars(struct messageEnvelope * temp )
 		return 0;
 }
 
-void atomic(int on)
-{
-on = on +1; 
-// code for the atomic. 
-
+void atomic(int on) {
+    static sigset_t oldmask;
+    sigset_t newmask;
+    if (on) {
+       atomic_count++;
+       if (atomic_count == 1) { //Check to see if atomic isn't already on
+          sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
+          sigaddset(&newmask, 14); //the alarm signal
+          sigaddset(&newmask, 2); // the CNTRL-C
+          sigaddset(&newmask, SIGUSR1);
+          sigaddset(&newmask, SIGUSR2);
+          sigprocmask(SIG_BLOCK, &newmask, &oldmask); //Oldmask saves the signals being blocked
+       }
+    } 
+    else {
+         atomic_count--;
+         if (atomic_count == 0) { //Check to see if atomic can be turned off
+            sigprocmask(SIG_SETMASK, &oldmask, NULL);
+         }
+    }
 }
 
 struct PCB * getPCB(int findPID)
@@ -169,6 +184,80 @@ struct PCB * getPCB(int findPID)
             done = 1;
     }
     return temp;
+}
+
+
+/////////////////////////////////////// NEW. 
+int  release_processor( )
+{
+	ptrCurrentExecuting->PCBState = 1; //Ready
+	//enqueue current process to ready queue
+	k_process_switch();
+	return 1;
+
+
+int  request_process_status(struct messageEnvelope * temp )
+{
+    if(temp == NULL)
+        return 0;
+    int i;
+    int j;
+    int k=0;
+    int PCBstatus[numProcessesTotal][3]; //Make global variable #ofProcesses to replace '8'???
+    struct PCB *process;
+    process = ptrPCBList;
+    while(process->ptrNextPCBList != NULL)
+    {
+        PCBstatus[i][0] = process->PID;
+        PCBstatus[i][1] = process->PCBState;
+        PCBstatus[i][2] = process->processPriority;
+        i++;
+        process = process->ptrNextPCBList;
+    }
+    for(i=0; i<8; i++)
+    {
+        for(j=0; j<3; j++)
+        {
+            temp->messageText[k] = PCBstatus[i][j];
+            k++;
+        }
+    }
+    return 1;
+}
+
+int  change_priority(int new_priority, int targetID); 
+	if (targetID == IPROCESS
+	
+
+		return -1;
+	PCB *temp;
+    temp = getPCB(targetID);	
+    temp->processPriority = new_priority;
+    /*
+		if target_process is on ready queue
+			dequeue from old priority queue
+			enqueue to new priority queue
+	*/
+	return 1;
+}
+
+int  request_delay( int delay, int wakeup_code, struct messageEnvelope * temp )
+{
+    if(temp == NULL)
+        return -1;
+    ptrCurrentExecuting->processState = BLOCKED_SLEEPING;
+    temp->messageType = MSGTYPEWAKEUP;
+    temp->mess
+	//set the message type = wakeup_code
+	temp->PIDsender = ptrCurrentExecuting->PID;
+	//k_send_message( TODO , temp); //TODO timer delay i-process PID
+	return 1;
+}
+
+int k_terminate()
+{
+    cleanup();
+    return 1;
 }
 
 

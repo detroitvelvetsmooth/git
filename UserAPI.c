@@ -49,3 +49,45 @@ int  send_console_chars(struct messageEnvelope * temp )
 	atomic(0);
     return 1;
 }
+
+int  release_processor( )
+{
+	atomic(1);
+	k_release_processor();
+	atomic(0);
+    return 1;
+}
+
+
+int  request_process_status(struct messageEnvelope * temp );
+{
+	atomic(1);
+	k_request_process_status(temp);
+	atomic(0);
+    return 1;
+}
+
+int  change_priority(int priority, int target_process_id)
+{
+    atomic(1);
+	k_change_priority(priority, target_process_id);
+	atomic(0);
+    return 1;
+}
+
+int  request_delay( int delay, int wakeup_code,struct messageEnvelope * temp ) 
+{
+    atomic(1);
+	k_request_delay(delay, wakeup_code, temp);
+	atomic(0);
+    return 1;
+}
+
+int  terminate()
+{
+    atomic(1);
+	k_terminate();
+	atomic(0);
+    return 1;
+}
+

@@ -22,7 +22,7 @@ void wallClock(){
 void iProcessAlarm(){
 
 	absoluteTime++;
-	messageEnvelope* env = NULL;
+	struct messageEnvelope* env = NULL;
 	env = k_receive_message();
 	if (env != NULL){//if sleep request appears
 		sqEnqueue(env->PIDSender,env);//still gotta make this funtion.. does it iterate through global PCB ptr
@@ -50,7 +50,8 @@ void iProcessAlarm(){
 void iProcessCRT(){
 
 if((*CRTSharedMemPointer).completedFlag == 1){//== 1 or 0?? Ask Andy
-	messageEnvelope* env = NULL;
+	
+	struct messageEnvelope* env = NULL;
 	env = k_receive_message();//primitive name
 	if (env != NULL){ //which it should always be the case
 		int i;
