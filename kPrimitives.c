@@ -226,9 +226,10 @@ int  request_process_status(struct messageEnvelope * temp )
 }
 
 int  change_priority(int new_priority, int targetID); 
-	if (targetID == IPROCESS
-	
-
+	if (targetID != PIDUserProcessA || targetID != PIDUserProcessB || targetID != PIDUserProcessC 
+		|| targetID != PIDcci || targetID != PIDNullProcess || targetID != PIDiProcessKeyboard 
+		|| targetID != PIDiProcessCRT || targetID != PIDiProcessTimer || new_priority != HIGH_PRIORITY 
+		||new_priority != MED_PRIORITY || new_priority != LOW_PRIORITY || new_priority != NULL_PRIORITY)
 		return -1;
 	PCB *temp;
     temp = getPCB(targetID);	
@@ -246,9 +247,8 @@ int  request_delay( int delay, int wakeup_code, struct messageEnvelope * temp )
     if(temp == NULL)
         return -1;
     ptrCurrentExecuting->processState = BLOCKED_SLEEPING;
-    temp->messageType = MSGTYPEWAKEUP;
-    temp->mess
-	//set the message type = wakeup_code
+    //temp->messageType = MSGTYPEWAKEUP;
+    //temp->sleepTicks = delay;
 	temp->PIDsender = ptrCurrentExecuting->PID;
 	//k_send_message( TODO , temp); //TODO timer delay i-process PID
 	return 1;
