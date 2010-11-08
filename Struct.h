@@ -33,9 +33,10 @@
 #define IPROCESS 5   //	Specifies the different states of the PCBs. 
 
 #define MSGTYPEDATA 0
-#define MSGTYPETIMER 1  //	defines the various types of messages ( regular vs timing message)
-//#define MSGTYPEACKNOWLEDGE 2 and additional ones. 
-
+#define MSGTYPECOUNT 2
+#define MSGTYPESLEEP 3
+#define MSGTYPEACK 4
+#define MSGTYPEWAKEUP 5
 
 #define PIDUserProcessA 0
 #define PIDUserProcessB 1
@@ -46,23 +47,30 @@
 #define PIDiProcessCRT 6
 #define PIDiProcessTimer 7
 
+//////////////// HELPER PROCESS KEYBOARD INITIALIZATION //////////////////
 
 struct Buffer  * keyboardSharedMemPointer;		// pointer to structure that is the shared memory
 int keyboardChildPID;				// pid of keyboard child process
 caddr_t keyboardmmap_ptr; //unsure of what caddr_t means.
 int keyboardFileIdentifier;
+char * keyboardFilename;  //the name of the shared_memory file
 
+/////////////// HELPER PROCESS CRT INITIALIZATION //////////////////
 struct Buffer  * CRTSharedMemPointer;		// pointer to structure that is the shared memory
 int CRTChildPID;				// pid of keyboard child process
 caddr_t CRTmmap_ptr; //unsure of what caddr_t means.
 int CRTFileIdentifier;
-
-char * keyboardFilename;  //the name of the shared_memory file
 char * CRTFilename;
+ 
+/////////////// TIMING IPROCESS ///////////////
 
 int absoluteTime;
 int relativeTime;
 int displayWallClock;
+
+struct messageEnvelope* ptrTimingList; // will be a  pointer to a linked list that contains the envelopes for the timing queu
+
+////////////// TRACE BUFFERS ///////////////////
 
 int sendTraceBuffer[16][3];
 int receiveTraceBuffer[16][3]; // for the time being the trace buffers will be 2 dimensional arrays  but these could later change to an array of structs.
@@ -73,38 +81,28 @@ int receiveTraceBufferIndexTail;
 int sendTraceBufferIndexHead;
 int sendTraceBufferIndexTail; // for the trace buffers we need to have a head and tail pointers since we will be using a circular array to print the last 16 messages.
 
+///////////////// GENERAL PCB LIST ///////////////////
 struct PCB* ptrCurrentExecuting; //will point to the currently executing Process.
-
 struct PCB* ptrPCBList; //ptr that will link to the PCB list (which will remain somewhat static once initialized
 struct PCB* ptrPCBListTail; //this tail ptr may or may not be required.
 
-struct PCB* ptrPCBReadyNull; // ptrs to the various priority queues for PCBs that are READY. for the nullPriority we will only have one process there.
-struct PCB* ptrPCBReadyNullTail;
+////////////// READY PRIORITY QUEUES ////////////////
 
-struct PCB* ptrPCBReadyLow;
-struct PCB* ptrPCBReadyLowTail;
+struct nodePCB* ptrPCBReadyNull; // ptrs to the various priority queues for PCBs that are READY. for the nullPriority we will only have one process there.
+struct nodePCB* ptrPCBReadyLow;
+struct nodePCB* ptrPCBReadyMed;
+struct nodePCB* ptrPCBReadyHigh;
 
-struct PCB* ptrPCBReadyMed;
-struct PCB* ptrPCBReadyMedTail;
+//////////////// BLOCKED ON X QUEUES ////////////////
 
-struct PCB* ptrPCBReadyHigh;
-struct PCB* ptrPCBReadyHighTail;
+struct nodePCB* ptrPCBBlockedReceive; //pointer to the blocked on message receive queue.
+struct nodePCB* ptrPCBBlockedAllocate; //pointer to the blocked on envelope allocate receive queue.
+struct nodePCB* ptrPCBTiming; // THE PCB OF THE PROCESSES THAT ARE SLEEPING WILL BE PLACED ON A TIMING QUEUE IN A "BLOCKED STATE"
 
-/*The head and tail ptrs will be used the head will be used to dequeue from the list and the tail will be used to enqueue onto the list. (we could change this into an array if required if it becomes very messy)
-*/
-
-struct PCB* ptrPCBBlockedReceive;
-struct PCB* ptrPCBBlockedReceiveTail; //pointer to the blocked on message receive queue.
-
-struct PCB* ptrPCBBlockedAllocate;
-struct PCB* ptrPCBBlockedAllocateTail; //pointer to the blocked on envelope allocate receive queue.
+//////////////// EMPTY MESSAGE ENVELOPES QUEUE ///////////
 
 struct messageEnvelope* ptrMessage;
 struct messageEnvelope* ptrMessageTail;  //will be used as pointers to the head and tail of the messageEnvelope queue. The tail will be used to add
-
-struct messageEnvelope* ptrTimingList; // will be a  pointer to a linked list that contains the envelopes for the timing queue.
-struct PCB* ptrPCBTiming; // THE PCB OF THE PROCESSES THAT ARE SLEEPING WILL BE PLACED ON A TIMING QUEUE IN A "BLOCKED STATE"
-
 
 
 struct Buffer{
@@ -113,12 +111,19 @@ struct Buffer{
 	int bufferLength;
 };
 
+struct nodePCB{  // Will be used to contain the head and tail pointers of whatever it is pointing to. 
+
+struct PCB* queueHead;
+struct PCB* queueTail;
+};
+
 struct messageEnvelope
 {
 	struct messageEnvelope * ptrNextMessage; //will point to the next messsage, if it is in an inbox queue or in the free memory queue.
 	int PIDSender; //int to track the sending process .
 	int PIDReceiver; // int to track the receiving process.
-	int messageType; //NOT sure of what type of messages we will have. we will probably use global variables as welll.
+	int sleepTicks; // WILL BE USED TO SPECIFY HOW MANY TICKS ARE REMAINING IF A PROCESS IS SLEEPING.
+	int messageType; //NOT sure of what type of messages we will have. we will probably use global variables as well.
 	char messageTimeStamp[10]; // contain the time when the message was sent.
 	char messageText[100];  //contains the actual message. It will be in string format and it could subsequently be parsed.
 };
@@ -131,7 +136,6 @@ struct PCB{
 
 	void (*programCounter)(); // will contain a ptr to the initial start of the process. hence it is a ptr to a function (THIS MAY BE WRONG)
 	char * ptrStack; //contain a ptr to the stack. Unsure of the type  TODO.
-
 
 	struct PCB* ptrNextPCBList; //will link to the next PCB in the main PCB List
 	struct PCB* ptrNextPCBQueue; //will link to the next PCB in whatever queue they may be (running/blocked on resource/executing)

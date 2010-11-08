@@ -31,8 +31,9 @@ for (i=0; i<totalMessages-1; i ++)
 	temporaryPointer = (*temporaryPointer).ptrNextMessage; // updates our temporary pointer.
 
 	(*temporaryPointer).ptrNextMessage = NULL;
-	(*temporaryPointer).PIDSender =i;  //TODO CHANGE LATER BACK TO -1
+	(*temporaryPointer).PIDSender =-1;
 	(*temporaryPointer).PIDReceiver = -1;
+	(*temporaryPointer).sleepTicks = -1;
 	(*temporaryPointer).messageType = -1;
 
 }

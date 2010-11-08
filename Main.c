@@ -9,9 +9,15 @@ int main() {
 
     //Every major process will be split into separate files.
     
+/////////////// TIMING IPROCESS /////////////
+    
 absoluteTime = 0;
 relativeTime = 0; // the wallclock will initially commence at the same time as the absoluteTime
 displayWallClock= 0;
+
+ptrTimingList=NULL; // pointer to messages that have the timing countdown. 
+
+//////////////// TRACE BUFFERS /////////////////////
 
 receiveTraceBufferIndexHead = 0; 
 receiveTraceBufferIndexTail = 0;
@@ -19,41 +25,46 @@ receiveTraceBufferIndexTail = 0;
 sendTraceBufferIndexHead = 0;
 sendTraceBufferIndexTail = 0;
 
+///////////// GENERAL PCB LIST /////////////////////////
+
 ptrCurrentExecuting = NULL; //will point to the currently executing Process.
 
 ptrPCBList = NULL; //ptr that will link to the PCB list (which will remain somewhat static once initialized
 ptrPCBListTail = NULL; //this tail ptr may or may not be required.
 
-ptrPCBReadyNull = NULL; // ptrs to the various priority queues for PCBs that are READY. for the nullPriority we will only have one process there.
-ptrPCBReadyNullTail = NULL;
+/////////////// PRIORITY QUEUES.///////////////
 
-ptrPCBReadyLow = NULL;
-ptrPCBReadyLowTail = NULL;
+(*ptrPCBReadyNull).queueHead =NULL;
+(*ptrPCBReadyNull).queueTail =NULL; // ptrs to the various priority queues for PCBs that are READY. for the nullPriority we will only have one process there.
 
-ptrPCBReadyMed = NULL;
-ptrPCBReadyMedTail = NULL;
+(*ptrPCBReadyLow).queueHead =NULL;
+(*ptrPCBReadyLow).queueTail =NULL;
 
-ptrPCBReadyHigh = NULL;
-ptrPCBReadyHighTail = NULL;
+(*ptrPCBReadyMed).queueHead =NULL;
+(*ptrPCBReadyMed).queueTail =NULL;
 
-ptrPCBTiming = NULL;  // pointer of the PCBs that will be sleeping.  ( acts similar to a blocked on resource queue ) 
-ptrTimingList = NULL; // pointer to messages that have the timing countdown. 
+(*ptrPCBReadyHigh).queueHead =NULL;
+(*ptrPCBReadyHigh).queueTail =NULL;  // pointer of the PCBs that will be sleeping.  ( acts similar to a blocked on resource queue ) 
 
+//////////// BLOCKED ON X QUEUES ////////////
 
-/*The head and tail ptrs will be used the head will be used to dequeue from the list and the tail will be used to enqueue onto the list. (we could change this into an array if required if it becomes very messy)
-*/
+(*ptrPCBTiming).queueHead= NULL;
+(*ptrPCBTiming).queueTail= NULL;
 
-ptrPCBBlockedReceive = NULL;
-ptrPCBBlockedReceiveTail = NULL; //pointer to the blocked on message receive queue.
+(*ptrPCBBlockedReceive).queueHead= NULL;
+(*ptrPCBBlockedReceive).queueTail= NULL; //pointer to the blocked on message receive queue.
 
-ptrPCBBlockedAllocate = NULL;
-ptrPCBBlockedAllocateTail = NULL; //pointer to the blocked on envelope allocate receive queue.
+(*ptrPCBBlockedAllocate).queueHead= NULL;
+(*ptrPCBBlockedAllocate).queueTail= NULL;
+
+////////////////// MESSAGE ENVELOPES /////////////////////////
 
 ptrMessage = NULL;
 ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the messageEnvelope queue. The tail will be used to add
 
+/////////////// LOGIC EXECUTION STARTS HERE ////////////////////
 	
-	
+		
 		signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
 		printf("Signals Associated\n");
 	
@@ -61,19 +72,19 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 		printf("Ualarm Set\n");
 	
 	
-//	ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
+	ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
 //	initializeProcessReadyQueue();
 
-    	ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
-    	ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
-		  printf("Message Envelopes Created and Linked\n");
+    ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
+    ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
+	  printf("Message Envelopes Created and Linked\n");
 		 
-  	 forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
-	   printf("Helper Process Forked\n");
+  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
+	  printf("Helper Process Forked\n");
 
 		 
-	//initializeProcessContext(ptrPCBList);  //Will actually initialize the context of each method.
-	//KreleaseProcessor(); //calls the dispatcher which would schedule the highest process to run.  In theory, the OS should never come back after this call.
+//  initializeProcessContext(ptrPCBList);  //Will actually initialize the context of each method.
+//  KreleaseProcessor(); //calls the dispatcher which would schedule the highest process to run.  In theory, the OS should never come back after this call.
 
 
 	while(1){} //TODO THIS WHILE LOOP SHOULD NEVER BE EXECUTED UNDER PROPER CONDITIONS. 
@@ -83,6 +94,7 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 
 
 void initializeProcessReadyQueue(){
+
  //The method will take in the PCB list and go one by one appending the PCBs onto the apprioriate priority ready queue. The method should be in the InitializeProcess.c but it is MUCH easier to place it here.
  //Additionally, it will return the tail pointer of the queue for reference.
 
@@ -93,59 +105,62 @@ int priority = -1;
 	
 	if((*ptrPCBTemporary).PCBState == READY){ // if a PCB is of type Iprocess we do not want to enqueue it onto any queue. since the iprocess is always ready to run and does not block. 
 	
-
 	priority = (*ptrPCBTemporary).processPriority; //retrieves the priority of the current PCB.
 
 		if(priority == HIGH_PRIORITY){
 
-
-			if(ptrPCBReadyHigh==NULL){ //MEANS IT IS THE FIRST ONE TO JOIN THE QUEUE.
-			ptrPCBReadyHigh = ptrPCBTemporary; //ptrPCBTemporary would be pointing to a pcb of high priority
-			ptrPCBReadyHighTail = ptrPCBTemporary ; // we wish to update the tail as well.
+			//EXECUTES BRIAN'S ENQUEUE.
+						
+			if(ptrPCBReadyHigh->queueHead==NULL){ //MEANS IT IS THE FIRST ONE TO JOIN THE QUEUE.
+			ptrPCBReadyHigh->queueHead = ptrPCBTemporary; //ptrPCBTemporary would be pointing to a pcb of high priority
+			ptrPCBReadyHigh->queueTail = ptrPCBTemporary ; // we wish to update the tail as well.
 			
 			}
 			else{ //we will follow the tail, append it to the tail and update the tail.
 
-			(*ptrPCBReadyHighTail).ptrNextPCBQueue  = ptrPCBTemporary;  // adds it to pointer of the PCB
-			ptrPCBReadyHighTail = ptrPCBTemporary;   // updates the tail.
+			ptrPCBReadyHigh->queueTail->ptrNextPCBQueue = ptrPCBTemporary;  // adds it to pointer of the PCB
+			ptrPCBReadyHigh->queueTail = ptrPCBTemporary;   // updates the tail.
 			}
 
    }
    else if(priority == MED_PRIORITY){
 
-			if(ptrPCBReadyMed==NULL){
-			ptrPCBReadyMed = ptrPCBTemporary;
-			ptrPCBReadyMedTail = ptrPCBTemporary ;
+			//EXECUTES BRIAN'S ENQUEUE.
+			if(ptrPCBReadyMed->queueHead==NULL){
+			ptrPCBReadyMed->queueHead = ptrPCBTemporary;
+			ptrPCBReadyMed->queueTail = ptrPCBTemporary ;
 			}
 			else{
 
-			(*ptrPCBReadyMedTail).ptrNextPCBQueue  = ptrPCBTemporary;
-			ptrPCBReadyMedTail = ptrPCBTemporary;
+			ptrPCBReadyMed->queueTail->ptrNextPCBQueue  = ptrPCBTemporary;
+			ptrPCBReadyMed->queueTail = ptrPCBTemporary;
 			}
         }
 	else if(priority==LOW_PRIORITY){
 
-			if(ptrPCBReadyLow==NULL){
-			ptrPCBReadyLow = ptrPCBTemporary;
-			ptrPCBReadyLowTail = ptrPCBTemporary ;
+			//EXECUTES BRIAN'S ENQUEUE.
+			if(ptrPCBReadyLow->queueHead==NULL){
+			ptrPCBReadyLow->queueHead = ptrPCBTemporary;
+			ptrPCBReadyLow->queueTail = ptrPCBTemporary ;
 			}
 			else{
 
-			(*ptrPCBReadyLowTail).ptrNextPCBQueue  = ptrPCBTemporary;
-			ptrPCBReadyLowTail = ptrPCBTemporary;
+			ptrPCBReadyLow->queueTail->ptrNextPCBQueue  = ptrPCBTemporary;
+			ptrPCBReadyLow->queueTail = ptrPCBTemporary;
 			}
 
   }
 	else if(priority==NULL_PRIORITY){
 
-			if(ptrPCBReadyNull==NULL){
-			ptrPCBReadyNull = ptrPCBTemporary;
-			ptrPCBReadyNullTail = ptrPCBTemporary ;
+			//EXECUTES BRIAN'S ENQUEUE.
+			if(ptrPCBReadyNull->queueHead==NULL){
+			ptrPCBReadyNull->queueHead = ptrPCBTemporary;
+			ptrPCBReadyNull->queueTail = ptrPCBTemporary ;
 			}
 			else{
 
-			(*ptrPCBReadyNullTail).ptrNextPCBQueue  = ptrPCBTemporary;
-			ptrPCBReadyNullTail = ptrPCBTemporary;
+			ptrPCBReadyNull->queueTail->ptrNextPCBQueue  = ptrPCBTemporary;
+			ptrPCBReadyNull->queueTail = ptrPCBTemporary;
 			}
 
 		}
@@ -165,11 +180,6 @@ int priority = -1;
 
 }// we don't need to return the updated tail pointer since this method is within the the same file.
 
-
-// routine to clean up things before terminating main program
-// This stuff must be cleaned up or we have child processes and shared
-//	memory hanging around after the main process terminates
-
 void cleanup(){     //will cleanup the code if a signal is received.
 
 printf("\nHousekeeping...Cleanup\n");
@@ -180,7 +190,7 @@ printf("\nHousekeeping...Cleanup\n");
   	kill(keyboardChildPID,SIGINT);  //sends a terminate signal to child process.
   //	kill(CRTChildPID,SIGINT);  //sends a terminate signal to child process.
 
-   //////////////clean up Keyboard ////////////////////////
+   //////////////CLEAN UP KEYBOARD  ////////////////////////
 	// remove shared memory segment and do some standard error checks
 	
 	
@@ -200,7 +210,7 @@ printf("\nHousekeeping...Cleanup\n");
       printf("Bad unlink during cleanup.\n");
     }
 
-    ////////////Cleans up CRT //////////////////
+    ////////////CLEAN UP CRT //////////////////
 
   /*  status = munmap(CRTmmap_ptr, bufferSize);
     if (status == -1){
