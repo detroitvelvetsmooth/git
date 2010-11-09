@@ -299,16 +299,14 @@ struct PCB* Dequeue(struct nodePCB* Q){
 	return returnPCB;
 }
 
-struct PCB* BlockedOnReceiveDequeue(int PIDTo){//this should work...
-	struct nodePCB* Q;
-	Q = ptrPCBBlockedReceive;
-	struct PCB* returnPCB;
+struct PCB* SearchPCBDequeue(int searchPID, struct nodePCB* Q){
+    struct PCB* returnPCB;
     struct PCB* temp;
     returnPCB = Q->queueHead;
 		if(Q->queueHead == NULL){//special case: Queue empty case
              return NULL;
 		}
-		if(Q->queueHead->PID == PIDTo){//special case: first element
+		if(Q->queueHead->PID == searchPID){//special case: first element
 			Q->queueHead = Q->queueHead->ptrNextPCBQueue;
 			if(Q->queueHead == NULL)
                 Q->queueTail = NULL;
@@ -318,7 +316,7 @@ struct PCB* BlockedOnReceiveDequeue(int PIDTo){//this should work...
             return NULL; //Q of length 1.
         temp = returnPCB;
 		while (!(temp->ptrNextPCBQueue==NULL)){//general case iteration
-			if(temp->ptrNextPCBQueue->PID == PIDTo){ //Found the node
+			if(temp->ptrNextPCBQueue->PID == searchPID){ //Found the node
 			    returnPCB=temp->ptrNextPCBQueue; //Node to return
 				temp->ptrNextPCBQueue = temp->ptrNextPCBQueue->ptrNextPCBQueue; //Jump node
 				if(temp->ptrNextPCBQueue == NULL){//special case: last element
