@@ -62,37 +62,54 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp )
 		return -1; 
 	}
 	
-	    temp->PIDSender = ptrCurrentExecuting->PID;
-			temp->PIDReceiver = dest_process_id;
+	temp->PIDSender = ptrCurrentExecuting->PID;
+	temp->PIDReceiver = dest_process_id;
 		
-		struct PCB *receiver;
+	struct PCB *receiver;
         receiver = getPCB(dest_process_id);
         
-         if(receiver->ptrMessageInboxHead == NULL)
-     {
-         receiver->ptrMessageInboxHead = temp;
-         receiver->ptrMessageInboxTail = temp;
-				 temp->ptrNextMessage = NULL;
-         
-     }
-     else
-     {
-         receiver->ptrMessageInboxTail->ptrNextMessage = temp; 
-         receiver->ptrMessageInboxTail = temp;
-         temp->ptrNextMessage = NULL;
-         
-     }
+        if(receiver->ptrMessageInboxHead == NULL)
+        {
+            receiver->ptrMessageInboxHead = temp;
+            receiver->ptrMessageInboxTail = temp;
+	    temp->ptrNextMessage = NULL;
+        }
+        else
+        {
+            receiver->ptrMessageInboxTail->ptrNextMessage = temp; 
+            receiver->ptrMessageInboxTail = temp;
+            temp->ptrNextMessage = NULL;
+        }
+        struct PCB* tempPCB;
+        if(receiver->PCBState == BLOCKED_MSG_RECEIVE || (receiver->PCBState == BLOCKED_SLEEPING && temp->messageType == MSGTYPEWAKEUP){
+        //Note: BLOCKED_SLEEPING and BLOCKED_MSG_RECEIVE both reside in the ptrPCBBlockedReceive Q)
+            tempPCB = SearchPCBDequeue(receiver->PID, ptrPCBBlockedReceive);
+            if (tempPCB == NULL){
+                printf("Inside k_send_message: The receiving process is in BLOCKED_MSG_RECEIVE state but not found on Q. ERROR.\n");
+            }
+            elseif(tempPCB != receiver){
+                printf("Inside k_send_message: The dequeued PCB from the Blocked on Receive Q is not = to the receiving PCB. ERROR. \n");
+            }
+            else{
+                int result;
+                if(tempPCB->processPriority == HIGH_PRIORITY)
+                    result = Enqueue(tempPCB, ptrPCBReadyHigh);
+                elseif(temp->processPriority == MED_PRIORITY)
+                    result = Enqueue(tempPCB, ptrPCBReadyMed);
+                elseif(temp->processPriority == LOW_PRIORITY)
+                    result = Enqueue(tempPCB, ptrPCBReadyLow);
+                else
+                    result = Enqueue(tempPCB, ptrPCBReadyNULL);
+                if(result != 1){
+                    printf("Inside k_send_message: The Enqueue function on the receiving PCB to its ready Q did not return 1. ERROR. \n");
+                }
+            }
+        }       
+            
         /*
 		store the sender, receiver, and time information of env into trace struct
-		if state of receiving process == blocked on receive 
-			then change state of receiving process to ready 
-			move process from blocked queue onto ready queue
-		if env type = = wakeup
-			then change state of sleeping process to ready
-			move process from sleep queue to ready queue
-		endif
-		*/
-		return 0;
+	*/
+	return 0;
 }
 
 struct messageEnvelope* k_receive_message( )
