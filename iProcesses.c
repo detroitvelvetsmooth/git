@@ -1,14 +1,7 @@
 #include "Struct.h"
-#include "publicProcesses.h"
-
-#define WAKEUP 0 ////This enumeration is preliminary if made up on the spot
-#define DISPLAY_ACK 1//just so it would compile-ish
-#define CONSOLE_INPUT 2
-
-
+//#include "publicProcesses.h"
 
 void wallClock(){
-
 	int math = absoluteTime/10;
 	int hour = (math/3600)%24;
 	math %= 3600;
@@ -45,20 +38,16 @@ void iProcessAlarm(){
 
 void iProcessCRT(){
 	if((*CRTSharedMemPointer).completedFlag == 1){//Indicates CRT has completed copying. Means empty buffer.
-	
 		struct messageEnvelope* env = NULL;
 		env = k_receive_message();//primitive name
 	
 		if (env != NULL){ //which it should always be the case
 		    int i;
-		    while(env->data[i] != NULL){//how can I extract data length? Print MAXCHAR everytime?TODO while loop logic
-			(*CRTSharedMemPointer).data[i] = env->data[i];
-			i++;
-		    }
+		    strcpy((*CRTSharedMemPointer).data, env->data);//Copies the contents of env->data to buffer
 	            env->messageType = MSGTYPEACK;
-	            k_send_message(env->PIDSender,env);//or do we dealloacate msg?
 	            (*CRTSharedMemPointer).bufferLength = i;
 	            (*CRTSharedMemPointer).completedFlag = 0; //Indicate to UNIXCRT that buffer is loaded
+	            k_send_message(env->PIDSender,env);
 	        }
          }
 }
@@ -69,15 +58,16 @@ if((*keyboardSharedMemPointer).completedFlag == 1)
 {
 	messageEnvelope* env = NULL;
 	env = k_receive_message();
-		if (env != NULL){//should we loop til inbox is empty? CCI can only ever send 1 request,then it gets blocked
+		if (env != NULL){
+                    //strcpy(env->data, (*keyboardShareMemPointer).data);
 		    int bufferLength = (*keyboardSharedMemPointer).bufferLength;
 		    for(int i = 0; i < bufferLength; i++){//assume env->data is a char[MAXCHAR]?
 		       env->data[i] = (*keyboardSharedMemPointer).data[i];
 	    	    }
 		    env->messageType = MSGCONSOLEINPUT;
-		    k_send_message(env->PIDSender, env);
 		    (*keyboardSharedMemPointer).completedFlag = 0;
 		    (*keyboardSharedMemPointer).bufferLength = 0;
+		    k_send_message(env->PIDSender, env);
 		    //printf("Found in Data Buffer: %s\n",dataBuffer);
 		}
 	}
