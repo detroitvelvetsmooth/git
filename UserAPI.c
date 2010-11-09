@@ -1,4 +1,5 @@
-#include "Processes.h"
+#include "publicAPI.h"
+#include "publicProcesses.h"
 
 struct messageEnvelope* request_message_env()
 {
@@ -59,7 +60,7 @@ int  release_processor( )
 }
 
 
-int  request_process_status(struct messageEnvelope * temp );
+int  request_process_status(struct messageEnvelope * temp )
 {
 	atomic(1);
 	k_request_process_status(temp);

@@ -1,5 +1,5 @@
 #include "Struct.h"
-#include "Processes.h"
+#include "publicProcesses.h"
 
 #define WAKEUP 0 ////This enumeration is preliminary if made up on the spot
 #define DISPLAY_ACK 1//just so it would compile-ish
@@ -43,10 +43,6 @@ void iProcessAlarm(){
 
 }
 
-
-
-
-
 void iProcessCRT(){
 
 if((*CRTSharedMemPointer).completedFlag == 1){//== 1 or 0?? Ask Andy
@@ -66,10 +62,6 @@ if((*CRTSharedMemPointer).completedFlag == 1){//== 1 or 0?? Ask Andy
 		}
 	}
 }
-
-
-
-
 
 void iProcessKeyboard(){
 

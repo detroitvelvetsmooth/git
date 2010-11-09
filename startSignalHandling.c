@@ -1,6 +1,5 @@
 #include <signal.h>
-#include "Processes.h"
-
+#include "startProcesses.h"
 //The method here will associate each unix signal with a particular method to call .
 
 void signalAssociation(){

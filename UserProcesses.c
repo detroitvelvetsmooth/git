@@ -1,5 +1,4 @@
-#include "UserAPI.c"
-#include "Struct.h"
+#include "publicAPI.h"
 
 
 //////// FUNCTION PROTOTYPES AND STRUCTS///////////////////

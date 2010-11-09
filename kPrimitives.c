@@ -1,5 +1,7 @@
 #include "Struct.h"
-#include "Processes.h"
+
+
+///////////K PRIMITIVES /////////////////////////
 
 struct messageEnvelope* k_request_message_env( )
 {
@@ -146,6 +148,86 @@ int  k_send_console_chars(struct messageEnvelope * temp )
 		return 0;
 }
 
+void  k_process_switch(){} //TO WRITE.
+
+int  k_release_processor( )
+{
+	ptrCurrentExecuting->PCBState = 1; //Ready
+	//enqueue current process to ready queue
+	k_process_switch();
+	return 1;
+}
+
+
+int  k_request_process_status(struct messageEnvelope * temp )
+{
+    if(temp == NULL)
+        return 0;
+    int i;
+    int j;
+    int k=0;
+    int PCBstatus[numProcessesTotal][3]; //Make global variable #ofProcesses to replace '8'???
+    struct PCB *process;
+    process = ptrPCBList;
+    while(process->ptrNextPCBList != NULL)
+    {
+        PCBstatus[i][0] = process->PID;
+        PCBstatus[i][1] = process->PCBState;
+
+        PCBstatus[i][2] = process->processPriority;
+        i++;
+        process = process->ptrNextPCBList;
+    }
+    for(i=0; i<8; i++)
+    {
+        for(j=0; j<3; j++)
+        {
+            temp->messageText[k] = PCBstatus[i][j];
+            k++;
+        }
+    }
+    return 1;
+}
+
+int  k_change_priority(int new_priority, int targetID){
+	if (targetID != PIDUserProcessA || targetID != PIDUserProcessB || targetID != PIDUserProcessC 
+		|| targetID != PIDcci || targetID != PIDNullProcess || targetID != PIDiProcessKeyboard 
+		|| targetID != PIDiProcessCRT || targetID != PIDiProcessTimer || new_priority != HIGH_PRIORITY 
+		||new_priority != MED_PRIORITY || new_priority != LOW_PRIORITY || new_priority != NULL_PRIORITY)
+		return -1;
+
+	struct PCB *temp;
+    temp = getPCB(targetID);	
+    temp->processPriority = new_priority;
+    /*
+
+		if target_process is on ready queue
+			dequeue from old priority queue
+
+			enqueue to new priority queue
+	*/
+	return 1;
+}
+
+int  k_request_delay( int delay, int wakeup_code, struct messageEnvelope * temp )
+{
+    if(temp == NULL)
+        return -1;
+    ptrCurrentExecuting->PCBState = BLOCKED_SLEEPING;
+    //temp->messageType = MSGTYPEWAKEUP;
+    //temp->sleepTicks = delay;
+	temp->PIDSender = ptrCurrentExecuting->PID;
+	//k_send_message( TODO , temp); //TODO timer delay i-process PID
+	return 1;
+}
+
+int k_terminate()
+{
+    cleanup();
+    return 1;
+}
+
+////////////////// HELPER FUNCTIONS /////////////////////
 void atomic(int on) {
     static sigset_t oldmask;
     sigset_t newmask;
@@ -185,86 +267,6 @@ struct PCB * getPCB(int findPID)
     }
     return temp;
 }
-
-
-/////////////////////////////////////// NEW. 
-void  k_process_switch(){} //TO WRITE.
-
-int  k_release_processor( )
-{
-	ptrCurrentExecuting->PCBState = 1; //Ready
-	//enqueue current process to ready queue
-	k_process_switch();
-	return 1;
-}
-
-
-int  k_request_process_status(struct messageEnvelope * temp )
-{
-    if(temp == NULL)
-        return 0;
-    int i;
-    int j;
-    int k=0;
-    int PCBstatus[numProcessesTotal][3]; //Make global variable #ofProcesses to replace '8'???
-    struct PCB *process;
-    process = ptrPCBList;
-    while(process->ptrNextPCBList != NULL)
-    {
-        PCBstatus[i][0] = process->PID;
-        PCBstatus[i][1] = process->PCBState;
-        PCBstatus[i][2] = process->processPriority;
-        i++;
-        process = process->ptrNextPCBList;
-    }
-    for(i=0; i<8; i++)
-    {
-        for(j=0; j<3; j++)
-        {
-            temp->messageText[k] = PCBstatus[i][j];
-            k++;
-        }
-    }
-    return 1;
-}
-
-int  k_change_priority(int new_priority, int targetID){
-	if (targetID != PIDUserProcessA || targetID != PIDUserProcessB || targetID != PIDUserProcessC 
-		|| targetID != PIDcci || targetID != PIDNullProcess || targetID != PIDiProcessKeyboard 
-		|| targetID != PIDiProcessCRT || targetID != PIDiProcessTimer || new_priority != HIGH_PRIORITY 
-		||new_priority != MED_PRIORITY || new_priority != LOW_PRIORITY || new_priority != NULL_PRIORITY)
-		return -1;
-
-	struct PCB *temp;
-    temp = getPCB(targetID);	
-    temp->processPriority = new_priority;
-    /*
-		if target_process is on ready queue
-			dequeue from old priority queue
-			enqueue to new priority queue
-	*/
-	return 1;
-}
-
-int  k_request_delay( int delay, int wakeup_code, struct messageEnvelope * temp )
-{
-    if(temp == NULL)
-        return -1;
-    ptrCurrentExecuting->PCBState = BLOCKED_SLEEPING;
-    //temp->messageType = MSGTYPEWAKEUP;
-    //temp->sleepTicks = delay;
-	temp->PIDSender = ptrCurrentExecuting->PID;
-	//k_send_message( TODO , temp); //TODO timer delay i-process PID
-	return 1;
-}
-
-int k_terminate()
-{
-    cleanup();
-    return 1;
-}
-
-//////////////// PRIMITIVE SUPPORT FUNCTIONS /////////////////////////
 
 int Enqueue(struct PCB* ptr,struct nodePCB* Q){//general enqueue function
     if(Q == NULL)

@@ -1,6 +1,5 @@
 #include "Struct.h"
-#include "Processes.h"
-
+#include "startProcesses.h"
 
 void forkAuxillaryProcess(){
 

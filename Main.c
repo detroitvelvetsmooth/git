@@ -1,5 +1,6 @@
 #include "Struct.h"
-#include "Processes.h"
+#include "startProcesses.h"
+#include "publicProcesses.h"
 
 /*Struct.h will contain the struct definitions to be used. MSG envelopes and PCBs and any
 other. Processes.h will contain the function prototypes for every process (user and iprocess) to be used.
@@ -75,46 +76,27 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 /////////////// LOGIC EXECUTION STARTS HERE ////////////////////
 	
 		
-	//	signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
+		signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
 	//	printf("Signals Associated\n");
 	
-  //	ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
+  	ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
 	//	printf("Ualarm Set\n");
 	
 	
-	ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
-	initializeProcessReadyQueue();
+		ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
+		initializeProcessReadyQueue();
 
     ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
     ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
-	  printf("Message Envelopes Created and Linked\n");
+ //  printf("Message Envelopes Created and Linked\n");
 		 
-//  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
+  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
 //  printf("Helper Process Forked\n");
 	  
 	 
-	 struct messageEnvelope* test = k_request_message_env();
-	 
-	 test->messageText[0] = 'p';
-	  test->messageText[1] = 'p';
-	   test->messageText[2] = '3';
-	    test->messageText[3] = 'p';
-	 test->messageText[4] = '\0';
-
-	 k_send_message((int)PIDUserProcessA,test);
-	 
-	 struct PCB* pcbofinterest = getPCB(PIDUserProcessA);
-	 struct messageEnvelope* testmessage = pcbofinterest -> ptrMessageInboxHead;  
-	 
-	 printf("Message Text: %s\n ", testmessage->messageText);
-	 printf("Message Sender: %d\n ", testmessage->PIDSender);
-	 printf("Message Receiver: %d\n ", testmessage->PIDReceiver);
-	 
-	 
-
-		 
-//  initializeProcessContext(ptrPCBList);  //Will actually initialize the context of each method.
-//  KreleaseProcessor(); //calls the dispatcher which would schedule the highest process to run.  In theory, the OS should never come back after this call.
+   initializeProcessContext(ptrPCBList);  //Will actually initialize the context of each method.
+ 
+   k_release_processor(); //calls the dispatcher which would schedule the highest process to run.  In theory, the OS should never come back after this call.
 
 
 	while(1){} //TODO THIS WHILE LOOP SHOULD NEVER BE EXECUTED UNDER PROPER CONDITIONS. 
