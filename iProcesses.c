@@ -45,22 +45,25 @@ void iProcessAlarm(){
 
 void iProcessCRT(){
 
-if((*CRTSharedMemPointer).completedFlag == 1){//== 1 or 0?? Ask Andy
+	if((*CRTSharedMemPointer).completedFlag == 1){//== 1 or 0?? Ask Andy
 	
-	struct messageEnvelope* env = NULL;
-	env = k_receive_message();//primitive name
-	if (env != NULL){ //which it should always be the case
+		struct messageEnvelope* env = NULL;
+		env = k_receive_message();//primitive name
+	
+		if (env != NULL){ //which it should always be the case
+
 		int i;
 		while(env->data[i] != NULL){//how can I extract data length? Print MAXCHAR everytime?TODO while loop logic
 			(*CRTSharedMemPointer).data[i] = env->data[i];
 			i++;
-			}
+		}
+	
 	env->messageType = DISPLAY_ACK; //enumerated?
 	k_send_message(env->PIDSender,env);//or do we dealloacate msg?
 	(*CRTSharedMemPointer).bufferLength = i;
 	(*CRTSharedMemPointer).completedFlag = 0;//or 1??
-		}
-	}
+	 }
+   }
 }
 
 void iProcessKeyboard(){
