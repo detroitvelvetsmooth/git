@@ -1,5 +1,5 @@
 #include "Struct.h"
-//#include "publicProcesses.h"
+#include "publicProcesses.h"
 
 void wallClock(){
 	int math = absoluteTime/10;
@@ -29,7 +29,6 @@ void iProcessAlarm(){
 			k_send_message(env->PIDSender,env);
 			}
 		}	
-	//&&displayWallClock ==1
 	 if(absoluteTime%10 ==0) //only displays the wall clock if the CCI demanded it
 	 { wallClock();
 	 }
