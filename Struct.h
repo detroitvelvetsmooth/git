@@ -40,6 +40,7 @@
 #define MSGTYPESLEEP 2
 #define MSGTYPEACK 3
 #define MSGTYPEWAKEUP 4
+#define MSGCONSOLEINPUT 5
 
 #define PIDUserProcessA 0
 #define PIDUserProcessB 1
