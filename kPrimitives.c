@@ -37,32 +37,43 @@ struct messageEnvelope* k_request_message_env( )
 
 int  k_release_message_env ( struct messageEnvelope* temp )
 {
-    if(temp == NULL)
-		return -1; 
-     //messageEnvelope *temp;
-     //temp = Env; //(messageEnvelope *)malloc(sizeof( messageEnvelope ));    
-    	 if(ptrMessage == NULL)
-	     {
-	         ptrMessage = temp;
-	         ptrMessageTail = temp;
-	/         temp->ptrNextMessage = NULL;
-	         
-	     }
-	     else
-	     {
-	         ptrMessageTail->ptrNextMessage = temp; 
-	         ptrMessageTail = temp;
-	         temp->ptrNextMessage = NULL;
-	         
-	     }
-    /*
-		if a process is on the blocked-on-allocate queue
-			then dequeue from blocked-on-allocate queue
-			set PCB state = ready
-			enqueue process onto ready queue
-		endif
-	*/
-		return 1;
+    if(temp == NULL) //No envelope
+         return -1; 
+    if(ptrMessage == NULL) //Empty Message linked list
+    {
+         ptrMessage = temp;
+         ptrMessageTail = temp;
+         temp->ptrNextMessage = NULL;
+    }
+    else //Normal Case
+    {
+         ptrMessageTail->ptrNextMessage = temp; 
+         ptrMessageTail = temp;
+         temp->ptrNextMessage = NULL;     
+    }
+    if(ptrPCBBlockedAllocate->queueHead != NULL) //Processes are blocked on allocate
+    {
+         struct PCB* movingPCB;
+         movingPCB = Dequeue(ptrPCBBlockedAllocate); //Grab PCB from Q.
+         if(movingPCB == NULL){
+             printf("Inside k_release_message_env: The PCB that was intended to be sent to ready was not properly dequeued from the blocked on allocate Q. ERROR.\n");
+         }
+         movingPCB->PCBState = READY;  //Change PCB's state to ready
+         int result;
+         if(movingPCB->processPriority == HIGH_PRIORITY)  //Enqueue the PCB to its proper ready Q.
+             result = Enqueue(movingPCB, ptrPCBReadyHigh);
+         elseif(movingPCB->processPriority == MED_PRIORITY)
+             result = Enqueue(movingPCB, ptrPCBReadyMed);
+         elseif(movingPCB->processPriority == LOW_PRIORITY)
+             result = Enqueue(movingPCB, ptrPCBReadyLow);
+         else
+             result = Enqueue(movingPCB, ptrPCBReadyNull); 
+         if(result != 1)
+         {
+             printf("Inside k_release_message_env: The PCB that was intended to be sent to ready was not properly enqueued. ERROR.\n");
+         }        
+    }
+    return 1;
 }
 
 int k_send_message( int dest_process_id, struct messageEnvelope* temp )
