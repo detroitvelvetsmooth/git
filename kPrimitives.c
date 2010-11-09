@@ -7,6 +7,7 @@ struct messageEnvelope* k_request_message_env( )
     if(ptrMessage == NULL) // No envelopes available
     {
 	  ptrCurrentExecuting->PCBState = BLOCKED_MSG_ALLOCATE;
+/* THIS PART IS PROBABLY WRONG AS THE INVOKING PCB WILL NOT BE ON A READY QUEUE
 	  struct PCB* movingPCB;
           if(ptrCurrentExecuting->processPriority == HIGH_PRIORITY)
               movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyHigh);
@@ -19,7 +20,8 @@ struct messageEnvelope* k_request_message_env( )
           if(movingPCB != ptrCurrentExecuting){
               printf("Inside k_request_message_env: The proper PCB was not returned by the SearchPCBDequeue function. ERROR.\n");
           }
-          int result = Enqueue(movingPCB, ptrPCBBlockedAllocate);
+*/
+          int result = Enqueue(ptrCurrentExecuting, ptrPCBBlockedAllocate);
           return NULL; //TODO: Change this once k_process_switch() works.
 	  //k_process_switch();
     }
