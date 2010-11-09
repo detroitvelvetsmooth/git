@@ -7,6 +7,7 @@ other. Processes.h will contain the function prototypes for every process (user 
 
 int main() {
 
+
     //Every major process will be split into separate files.
     
 /////////////// TIMING IPROCESS /////////////
@@ -35,28 +36,36 @@ ptrPCBListTail = NULL; //this tail ptr may or may not be required.
 
 /////////////// PRIORITY QUEUES.///////////////
 
+ptrPCBReadyNull = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBReadyNull).queueHead =NULL;
 (*ptrPCBReadyNull).queueTail =NULL; // ptrs to the various priority queues for PCBs that are READY. for the nullPriority we will only have one process there.
 
+ptrPCBReadyLow = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBReadyLow).queueHead =NULL;
 (*ptrPCBReadyLow).queueTail =NULL;
 
+ptrPCBReadyMed = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBReadyMed).queueHead =NULL;
 (*ptrPCBReadyMed).queueTail =NULL;
 
+ptrPCBReadyHigh = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBReadyHigh).queueHead =NULL;
 (*ptrPCBReadyHigh).queueTail =NULL;  // pointer of the PCBs that will be sleeping.  ( acts similar to a blocked on resource queue ) 
 
 //////////// BLOCKED ON X QUEUES ////////////
 
+ptrPCBTiming = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBTiming).queueHead= NULL;
 (*ptrPCBTiming).queueTail= NULL;
 
+ptrPCBBlockedReceive = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBBlockedReceive).queueHead= NULL;
 (*ptrPCBBlockedReceive).queueTail= NULL; //pointer to the blocked on message receive queue.
 
+ptrPCBBlockedAllocate = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBBlockedAllocate).queueHead= NULL;
 (*ptrPCBBlockedAllocate).queueTail= NULL;
+
 
 ////////////////// MESSAGE ENVELOPES /////////////////////////
 
@@ -66,22 +75,42 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 /////////////// LOGIC EXECUTION STARTS HERE ////////////////////
 	
 		
-		signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
-		printf("Signals Associated\n");
+	//	signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
+	//	printf("Signals Associated\n");
 	
-		ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
-		printf("Ualarm Set\n");
+  //	ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
+	//	printf("Ualarm Set\n");
 	
 	
 	ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
-//	initializeProcessReadyQueue();
+	initializeProcessReadyQueue();
 
     ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
     ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
 	  printf("Message Envelopes Created and Linked\n");
 		 
-  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
-	  printf("Helper Process Forked\n");
+//  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
+//  printf("Helper Process Forked\n");
+	  
+	 
+	 struct messageEnvelope* test = k_request_message_env();
+	 
+	 test->messageText[0] = 'p';
+	  test->messageText[1] = 'p';
+	   test->messageText[2] = '3';
+	    test->messageText[3] = 'p';
+	 test->messageText[4] = '\0';
+
+	 k_send_message((int)PIDUserProcessA,test);
+	 
+	 struct PCB* pcbofinterest = getPCB(PIDUserProcessA);
+	 struct messageEnvelope* testmessage = pcbofinterest -> ptrMessageInboxHead;  
+	 
+	 printf("Message Text: %s\n ", testmessage->messageText);
+	 printf("Message Sender: %d\n ", testmessage->PIDSender);
+	 printf("Message Receiver: %d\n ", testmessage->PIDReceiver);
+	 
+	 
 
 		 
 //  initializeProcessContext(ptrPCBList);  //Will actually initialize the context of each method.
@@ -122,6 +151,7 @@ int priority = -1;
 			ptrPCBReadyHigh->queueTail->ptrNextPCBQueue = ptrPCBTemporary;  // adds it to pointer of the PCB
 			ptrPCBReadyHigh->queueTail = ptrPCBTemporary;   // updates the tail.
 			}
+			ptrCurrentExecuting = ptrPCBTemporary; // updates ptrCurrentExecuting to point to the last pcb on the ready queue. 
 
    }
    else if(priority == MED_PRIORITY){

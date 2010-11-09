@@ -53,7 +53,7 @@ void ProcessB(){
      do{
         //Receive message and send to process C, then release processor.
         BTemp = receive_message();
-        status = send_message(PIDUserProcessC, BTemp);
+       // status = send_message(PIDUserProcessC, BTemp);
         if (status!=1)
            printf("\n Send_Message failed from ProcessB to ProcessC\n");
         release_processor();

@@ -62,7 +62,7 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp )
 		return -1; 
 	}
 	
-      temp->PIDSender = ptrCurrentExecuting->PID;
+	    temp->PIDSender = ptrCurrentExecuting->PID;
 			temp->PIDReceiver = dest_process_id;
 		
 		struct PCB *receiver;
@@ -188,15 +188,18 @@ struct PCB * getPCB(int findPID)
 
 
 /////////////////////////////////////// NEW. 
-int  release_processor( )
+void  k_process_switch(){} //TO WRITE.
+
+int  k_release_processor( )
 {
 	ptrCurrentExecuting->PCBState = 1; //Ready
 	//enqueue current process to ready queue
 	k_process_switch();
 	return 1;
+}
 
 
-int  request_process_status(struct messageEnvelope * temp )
+int  k_request_process_status(struct messageEnvelope * temp )
 {
     if(temp == NULL)
         return 0;
@@ -225,13 +228,14 @@ int  request_process_status(struct messageEnvelope * temp )
     return 1;
 }
 
-int  change_priority(int new_priority, int targetID); 
+int  k_change_priority(int new_priority, int targetID){
 	if (targetID != PIDUserProcessA || targetID != PIDUserProcessB || targetID != PIDUserProcessC 
 		|| targetID != PIDcci || targetID != PIDNullProcess || targetID != PIDiProcessKeyboard 
 		|| targetID != PIDiProcessCRT || targetID != PIDiProcessTimer || new_priority != HIGH_PRIORITY 
 		||new_priority != MED_PRIORITY || new_priority != LOW_PRIORITY || new_priority != NULL_PRIORITY)
 		return -1;
-	PCB *temp;
+
+	struct PCB *temp;
     temp = getPCB(targetID);	
     temp->processPriority = new_priority;
     /*
@@ -242,14 +246,14 @@ int  change_priority(int new_priority, int targetID);
 	return 1;
 }
 
-int  request_delay( int delay, int wakeup_code, struct messageEnvelope * temp )
+int  k_request_delay( int delay, int wakeup_code, struct messageEnvelope * temp )
 {
     if(temp == NULL)
         return -1;
-    ptrCurrentExecuting->processState = BLOCKED_SLEEPING;
+    ptrCurrentExecuting->PCBState = BLOCKED_SLEEPING;
     //temp->messageType = MSGTYPEWAKEUP;
     //temp->sleepTicks = delay;
-	temp->PIDsender = ptrCurrentExecuting->PID;
+	temp->PIDSender = ptrCurrentExecuting->PID;
 	//k_send_message( TODO , temp); //TODO timer delay i-process PID
 	return 1;
 }
@@ -270,28 +274,34 @@ int Enqueue(struct PCB* ptr,struct nodePCB* Q){//general enqueue function
 		Q->queueTail = ptr;
 	}
 	else{
-	     ptr->ptrNextnodePCB = NULL;
-	     Q->queueTail->ptrNextnodePCB = ptr;
+	     ptr->ptrNextPCBQueue = NULL;
+	     Q->queueTail->ptrNextPCBQueue = ptr;
          Q->queueTail = ptr;
     }
 	return 1;
 }
 
 struct PCB* Dequeue(struct nodePCB* Q){
+
 	if(Q->queueHead == NULL)//Queue empty case
 		return NULL;
+
+	
 	struct PCB* returnPCB;
 	returnPCB = Q->queueHead;
+
 	if(Q->queueHead == Q->queueTail)
         Q->queueTail = NULL;
-    Q->queueHead = returnPCB->ptrNextnodePCB;
-    returnPCB->ptrNextnodePCB = NULL;
+        
+    Q->queueHead = returnPCB->ptrNextPCBQueue;
+    returnPCB->ptrNextPCBQueue = NULL;    
+    
 	return returnPCB;
 }
 
 struct PCB* BlockedOnReceiveDequeue(int PIDTo){//this should work...
 	struct nodePCB* Q;
-	Q = BlockedOnReceiveQ;
+	Q = ptrPCBBlockedReceive;
 	struct PCB* returnPCB;
     struct PCB* temp;
     returnPCB = Q->queueHead;
@@ -299,7 +309,7 @@ struct PCB* BlockedOnReceiveDequeue(int PIDTo){//this should work...
              return NULL;
 		}
 		if(Q->queueHead->PID == PIDTo){//special case: first element
-			Q->queueHead = Q->head->ptrNextnodePCB;
+			Q->queueHead = Q->queueHead->ptrNextPCBQueue;
 			if(Q->queueHead == NULL)
                 Q->queueTail = NULL;
             return returnPCB;
@@ -307,16 +317,16 @@ struct PCB* BlockedOnReceiveDequeue(int PIDTo){//this should work...
 		if(Q->queueHead == Q->queueTail)
             return NULL; //Q of length 1.
         temp = returnPCB;
-		while (!(temp->ptrNextnodePCB==NULL)){//general case iteration
-			if(temp->ptrNextnodePCB->PID == PIDTo){ //Found the node
-			    returnPCB=temp->ptrNextnodePCB; //Node to return
-				temp->ptrNextnodePCB = temp->ptrNextnodePCB->ptrNextnodePCB; //Jump node
-				if(temp->ptrNextnodePCB == NULL){//special case: last element
+		while (!(temp->ptrNextPCBQueue==NULL)){//general case iteration
+			if(temp->ptrNextPCBQueue->PID == PIDTo){ //Found the node
+			    returnPCB=temp->ptrNextPCBQueue; //Node to return
+				temp->ptrNextPCBQueue = temp->ptrNextPCBQueue->ptrNextPCBQueue; //Jump node
+				if(temp->ptrNextPCBQueue == NULL){//special case: last element
 					Q->queueTail = returnPCB;
 				}
 				return returnPCB;
 				}
-			temp = temp->ptrNextnodePCB;
+			temp = temp->ptrNextPCBQueue;
 			}
 	return NULL;//if element is not in Queue.
 }

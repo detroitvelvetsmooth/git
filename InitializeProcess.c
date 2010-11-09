@@ -92,10 +92,11 @@ for(i = 1; i < numProcesses; i ++ )
 //	(*temporaryPCB).contextBuffer;
 
 }
+
 // UP TO HERE, REGULAR PROCESSES HAVE BEEN ALLOCATED, NOW WE APPEND THE IPROCESSES. WHICH WILL BE HARDCODED.
 
 /////////////keyboard iprocess ///////////
-	
+
 	(*temporaryPCB).ptrNextPCBList =  (struct PCB*)malloc(sizeof(struct PCB)); //defines the New PCB and links it to the linked list. 
 	temporaryPCB = (*temporaryPCB).ptrNextPCBList; //moves the temporary pointer to the new PCB
 	
@@ -154,6 +155,7 @@ for(i = 1; i < numProcesses; i ++ )
 // AT THIS POINT, ALL THE PCB structs have been created and are placed in a linked list.
 // They now need to be placed in their appropriate ready queue ( based on priority)
 // Additionally, their context must be initialized. (both of these items are in another method).
+
 
 return ptrPCBHead;
 

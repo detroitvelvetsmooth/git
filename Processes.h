@@ -33,11 +33,14 @@ struct messageEnvelope* k_receive_message( );
 int  k_get_console_chars( struct messageEnvelope * temp );
 int  k_send_console_chars(struct messageEnvelope * temp );
 
-int  release_processor();
-int  request_process_status(struct messageEnvelope * temp );
-int  change_priority(int new_priority, int targetID); 
-int  request_delay(int delay, int wakeup_code, struct messageEnvelope * temp);
+int  k_release_processor();
+int  k_request_process_status(struct messageEnvelope * temp );
+int  k_change_priority(int new_priority, int targetID); 
+int  k_request_delay(int delay, int wakeup_code, struct messageEnvelope * temp);
 int k_terminate();
+
+int Enqueue(struct PCB* ptr,struct nodePCB* Q);
+struct PCB* Dequeue(struct nodePCB* Q);
 
 struct PCB * getPCB(int findPID);
 void atomic(int on);
