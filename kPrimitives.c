@@ -79,7 +79,7 @@ int  k_release_message_env ( struct messageEnvelope* temp )
 int k_send_message( int dest_process_id, struct messageEnvelope* temp )
 {	
 
-	if(temp==NULL)
+	if(temp==NULL) //No Envelope Passed.
 	{ printf("k_send_message: No envelope passed\n");
 		return -1; 
 	}
@@ -90,7 +90,7 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp )
 	struct PCB *receiver;
         receiver = getPCB(dest_process_id);
         
-        if(receiver->ptrMessageInboxHead == NULL)
+        if(receiver->ptrMessageInboxHead == NULL) //Empty Inbox
         {
             receiver->ptrMessageInboxHead = temp;
             receiver->ptrMessageInboxTail = temp;
@@ -137,23 +137,38 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp )
 struct messageEnvelope* k_receive_message( )
 {
    struct messageEnvelope *temp;
-    /*
-    if(ptrCurrentExecuting->ptrInboxMessageHead == NULL)
-        if(ptrCurrentExecuting->PID == IPROCESS)
-            return NULL;
-        ptrCurrentExecuting->PIDState = BLOCKED ON RECEIVE
-			move current process to blocked on receive queue
-			k_process_switch();
-		endif
-	*/
+   if(ptrCurrentExecuting->ptrInboxMessageHead == NULL)
+   {
+       if(ptrCurrentExecuting->PCBState == IPROCESS) //Iprocesses don't block
+           return NULL;
+       ptrCurrentExecuting->PCBState = BLOCKED_MSG_RECEIVE; //Change state
+/* I DON'T BELIEVE THIS IS NECESSARY AS THE INVOKING PROCESS WON'T BE ON A READY Q
+       struct PCB* movingPCB;
+       if(ptrCurrentExecuting->processPriority == HIGH_PRIORITY)
+           movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyHigh);
+       elseif(ptrCurrentExecuting->processPriority == MED_PRIORITY)
+           movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyMed);
+       elseif(ptrCurrentExecuting->processPriority == LOW_PRIORITY)
+           movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyLow);
+       else(ptrCurrentExecuting->processPriority == NULL_PRIORITY)
+           movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyNull);
+       if(movingPCB != ptrCurrentExecuting){
+           printf("Inside k_receive_message_env: The proper PCB was not returned by the SearchPCBDequeue function. ERROR.\n");
+*/
+       int result = Enqueue(ptrCurrentExecuting, ptrPCBBlockedReceive);
+       if (result != 1)
+           printf("Inside k_receive_message_env: The invoking PCB is meant to be blocked. The Enqueue function was unable to enqueue the PCB to the Blocked on Receive Q.\n");
+       //Call Process_switch();
+   }
 		
     //temp = (stuct messageEnvelope*)malloc(sizeof( struct messageEnvelope ));
     
-    if(ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage==NULL)
+    if(ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage==NULL) //Inbox is size 1
     {
     	ptrCurrentExecuting->ptrMessageInboxTail = NULL;
     }
     
+    //
     temp = ptrCurrentExecuting->ptrMessageInboxHead;
     ptrCurrentExecuting->ptrMessageInboxHead = ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage;
     return temp;
