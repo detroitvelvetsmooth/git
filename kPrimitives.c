@@ -45,7 +45,7 @@ int  k_release_message_env ( struct messageEnvelope* temp )
 	     {
 	         ptrMessage = temp;
 	         ptrMessageTail = temp;
-	         temp->ptrNextMessage = NULL;
+	/         temp->ptrNextMessage = NULL;
 	         
 	     }
 	     else
@@ -257,21 +257,42 @@ int  k_request_process_status(struct messageEnvelope * temp )
 }
 
 int  k_change_priority(int new_priority, int targetID){
-	if (targetID != PIDUserProcessA || targetID != PIDUserProcessB || targetID != PIDUserProcessC 
+    if (targetID != PIDUserProcessA || targetID != PIDUserProcessB || targetID != PIDUserProcessC 
 		|| targetID != PIDcci || targetID != PIDNullProcess || targetID != PIDiProcessKeyboard 
 		|| targetID != PIDiProcessCRT || targetID != PIDiProcessTimer || new_priority != HIGH_PRIORITY 
 		||new_priority != MED_PRIORITY || new_priority != LOW_PRIORITY || new_priority != NULL_PRIORITY)
 		return -1;
-
-	struct PCB *temp;
+    struct PCB *temp;
     temp = getPCB(targetID);	
+    //Since PCB is in a ready Q it must be changed immediately.
+    if(temp->PCBState == READY){
+	  struct PCB* movingPCB;
+          if(temp->processPriority == HIGH_PRIORITY)
+              movingPCB = SearchPCBDequeue(targetID, ptrPCBReadyHigh);
+          elseif(temp->processPriority == MED_PRIORITY)
+              movingPCB = SearchPCBDequeue(targetID, ptrPCBReadyMed);
+          elseif(temp->processPriority == LOW_PRIORITY)
+              movingPCB = SearchPCBDequeue(targetID, ptrPCBReadyLow);
+          else(temp->processPriority == NULL_PRIORITY)
+              movingPCB = SearchPCBDequeue(targetID, ptrPCBReadyNull);
+          if(movingPCB != temp){
+              printf("Inside k_change_priority: The proper PCB was not returned by the SearchPCBDequeue function. ERROR.\n");
+          }
+          int result;
+          if(new_priority == HIGH_PRIORITY)
+              result = Enqueue(movingPCB, ptrPCBReadyHigh);
+          elseif(new_priority == MED_PRIORITY)
+              result = Enqueue(movingPCB, ptrPCBReadyMed);
+          elseif(new_priority == LOW_PRIORITY)
+              result = Enqueue(movingPCB, ptrPCBReadyLow);
+          else
+              result = Enqueue(movingPCB, ptrPCBReadyNull);
+          if(result != 1){
+              printf("Inside k_change_priority: The PCB was not properly enqueued to its ready Q. ERROR./n");
+          }     
+    }
     temp->processPriority = new_priority;
-    /*
-		if target_process is on ready queue
-			dequeue from old priority queue
-			enqueue to new priority queue
-	*/
-	return 1;
+    return 1;
 }
 
 int  k_request_delay( int delay, int wakeup_code, struct messageEnvelope * temp )
