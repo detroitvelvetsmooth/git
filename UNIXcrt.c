@@ -10,10 +10,10 @@ void in_die()
 
 int main (int argc, char * argv[]){
 
-	sigset(SIGINT,in_die);
+	sigset(SIGINT,in_die); //Define signal handling
 
 	int parent_id, file_id;
-  int bufferSize = BUFFERSIZE;
+        int bufferSize = BUFFERSIZE;
 
 	caddr_t mmap_ptr;
 	struct Buffer * output_mem_p;
@@ -25,7 +25,7 @@ int main (int argc, char * argv[]){
 
 	mmap_ptr = mmap((caddr_t) 0,bufferSize,PROT_READ | PROT_WRITE,MAP_SHARED,file_id, (off_t) 0);
 
-	if (mmap_ptr == NULL){
+	if (mmap_ptr == NULL){ //Memory mapping failed
 		printf("ISSUES");
 		exit(0);
 	}
@@ -34,13 +34,13 @@ int main (int argc, char * argv[]){
 	output_mem_p->bufferLength = 0;
 	int i;
 	do{
-		while(output_mem_p->completedFlag == 0)
-			sleep(1);
-		for (i = 0; i < output_mem_p->bufferLength; i++){
+		while(output_mem_p->completedFlag == 0) //Wait until buffer is ready
+			usleep(500);
+		/*for (i = 0; i < output_mem_p->bufferLength; i++){
 			output_text[i] = output_mem_p->data[i];
 			output_mem_p->data[i] = '\0';
-		}
-		output_mem_p->data[output_mem_p->bufferLength] = '\0';
+		}*/
+                strcpy(output_text, output_mem_p->data);
 		printf("UNIXcrt says: %s", output_text);
 		output_mem_p->completedFlag = 1;
 		output_mem_p->bufferLength = 0;

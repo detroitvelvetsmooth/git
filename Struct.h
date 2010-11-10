@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <string.h>
 
 // The libraries included here will be common to all files. If a particular file requires additional libraries they will be imported on the fly.
 
