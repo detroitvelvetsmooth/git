@@ -11,7 +11,7 @@ void wallClock(){
 }
 
 void iProcessAlarm(){ //THIS FUNCTION IS IN A NON WORKING STATE . TODO
-
+/*
 	absoluteTime++;
 	relativeTime++;
 	
@@ -39,7 +39,7 @@ void iProcessAlarm(){ //THIS FUNCTION IS IN A NON WORKING STATE . TODO
 	 if(relativeTime%10 ==0) //only displays the wall clock if the CCI demanded it
 	 { wallClock();
 	 }
-
+*/
 }
 
 void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
@@ -51,11 +51,10 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 		if (env != NULL){ //which it should always be the case
 		    int i;
 		    strcpy((*CRTSharedMemPointer).data, env->data);//Copies the contents of env->data to buffer
-	            env->messageType = MSGTYPEACK;
-	            (*CRTSharedMemPointer).bufferLength = i;
-	            (*CRTSharedMemPointer).completedFlag = 0; //Indicate to UNIXCRT that buffer is loaded
-	            k_send_message(env->PIDSender,env);
-	        }
+	      env->messageType = MSGTYPEACK;
+	      (*CRTSharedMemPointer).completedFlag = 0; //Indicate to UNIXCRT that buffer is loaded
+	      k_send_message(env->PIDSender,env);
+	  }
   }
 }
 
@@ -66,18 +65,11 @@ void iProcessKeyboard(){
 		messageEnvelope* env = NULL;
 		env = k_receive_message();
 			if (env != NULL){
-	                    //strcpy(env->data, (*keyboardShareMemPointer).data);
-			    int bufferLength = (*keyboardSharedMemPointer).bufferLength;
-			    
-			    for(int i = 0; i < bufferLength; i++){//assume env->data is a char[MAXCHAR]?
-			       env->data[i] = (*keyboardSharedMemPointer).data[i];
-		    	}
-		    	
+	        
+	        strcpy(env->data, (*keyboardShareMemPointer).data);
 			    env->messageType = MSGCONSOLEINPUT;
 			    (*keyboardSharedMemPointer).completedFlag = 0;
-			    (*keyboardSharedMemPointer).bufferLength = 0;
 			    k_send_message(env->PIDSender, env);
-			    
 			}
 		}
 	else{
@@ -85,7 +77,7 @@ void iProcessKeyboard(){
 	}
 }
 
-int TimingListEnqueue(struct messageEnvelope* env){
+/*int TimingListEnqueue(struct messageEnvelope* env){
 
 	if (env != NULL){
 	
@@ -117,7 +109,7 @@ int TimingListEnqueue(struct messageEnvelope* env){
 		
 	}
 }
-
+*/
 
 
 

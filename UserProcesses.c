@@ -137,7 +137,7 @@ void CCI()
 		get_console_chars(temp);
 		temp = receive_message(); //assuming KB iProcess sends evn back to process
 	
-		if(strcmp(temp->messageText, "\0")==0)
+		if(strcmp(temp->messageText, "test\0")==0) //REMOVE THE 'TEST'
 		{
 			strcpy(temp->messageText, "Hello\0") //TODO just for testing...
 			send_console_chars(temp);
@@ -207,6 +207,7 @@ void CCI()
 			temp = receive_message();
 		}
 	}
+	//release_processor(); TODO UNCOMMENT THIS LINE. 
 	}
 }
 

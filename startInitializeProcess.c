@@ -23,27 +23,27 @@ void (*processProgramCounter[numProcesses])(); //array of function pointers.
 processPID[0] = PIDUserProcessA;
 processPriority[0] = MED_PRIORITY;
 processType[0] = READY;
-processProgramCounter[0] = testContextA; //Need to know the method name of each process. ProcessA
+processProgramCounter[0] = ProcessA; 
 
 processPID[1] = PIDUserProcessB;
 processPriority[1] = MED_PRIORITY;
 processType[1] = READY;
-processProgramCounter[1] = testContextB;//Need to know the method name of each process. ProcessB
+processProgramCounter[1] =ProcessB;
 
 processPID[2] = PIDUserProcessC;
 processPriority[2] = MED_PRIORITY;
 processType[2] = READY;
-processProgramCounter[2] =NULL; //Need to know the method name of each process.  ProcessC
+processProgramCounter[2] =ProcessC;
 
 processPID[3] = PIDcci;
 processPriority[3] = HIGH_PRIORITY;
 processType[3] = READY;
-processProgramCounter[3] =NULL; //Need to know the method name of each process. CCI
+processProgramCounter[3] =CCI;
 
 processPID[4] = PIDNullProcess;
 processPriority[4] = NULL_PRIORITY;
 processType[4] = READY;
-processProgramCounter[4] =NULL; //Need to know the method name of each process. NullProcess
+processProgramCounter[4] =NullProcess; 
 
 //Now that we can define create a PCB for all the processes and link each new process.
 
@@ -202,15 +202,13 @@ void initializeProcessContext(){
 			}
 			else{
 				
-				printf("This PCB PID: %d\n", ptrCurrentExecuting->PID); //prints the pcb of the process about to be executed.
+				printf("About to Start Process with PID: %d\n", ptrCurrentExecuting->PID); //prints the pcb of the process about to be executed.
 				ptrCurrentExecuting->programCounter(); //executes for the first time.
 			  printf("initializeProcessContext: Process failed to execute correctly or never called a context switch\n");
 			
 			}
-
 		}
 	// we update our current process
-
 		}
 		
 	ptrCurrentExecuting = (*ptrCurrentExecuting).ptrNextPCBList;

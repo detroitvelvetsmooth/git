@@ -3,7 +3,7 @@
 
 void in_die()
 {
-	printf("\nHousekeeping...Will Exit UNIXkbd NOW");
+	printf("\nHousekeeping...Will Exit UNIXcrt NOW");
 	exit(0);
 }
 
@@ -34,13 +34,14 @@ int main (int argc, char * argv[]){
 	output_mem_p->bufferLength = 0;
 	int i;
 	do{
-		while(output_mem_p->completedFlag == 0) //Wait until buffer is ready
+		while(output_mem_p->completedFlag == 1) //Wait until buffer is ready
 			usleep(500);
 		/*for (i = 0; i < output_mem_p->bufferLength; i++){
 			output_text[i] = output_mem_p->data[i];
 			output_mem_p->data[i] = '\0';
 		}*/
-                strcpy(output_text, output_mem_p->data);
+     strcpy(output_text, output_mem_p->data);
+     
 		printf("UNIXcrt says: %s", output_text);
 		output_mem_p->completedFlag = 1;
 		output_mem_p->bufferLength = 0;

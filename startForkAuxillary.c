@@ -87,7 +87,7 @@ int in_pid = -999;
 
 	//will essentially do the same thing as the keyboard process.
 
-	/* Create a new mmap file for read/write access with permissions restricted
+	 Create a new mmap file for read/write access with permissions restricted
      to owner rwx access only 
   CRTFileIdentifier = open(CRTFilename, O_RDWR | O_CREAT | O_EXCL, (mode_t) 0755 );
 
@@ -151,7 +151,7 @@ int in_pid = -999;
 		// in this case, do nothing;
 	CRTSharedMemPointer->completedFlag = 0;
 	
-	*/
+	
 
 
 }

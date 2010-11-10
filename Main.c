@@ -72,37 +72,36 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 /////////////// LOGIC EXECUTION STARTS HERE ////////////////////
 	
 		
-	//	signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
-	//	printf("Signals Associated\n");
+		signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
+		printf("Signals Associated\n");
 	
   //	ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
 	//	printf("Ualarm Set\n");
 	
 	
 		ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
-  //	initializeProcessReadyQueue();
+  	initializeProcessReadyQueue();
+  	printf("Initialized Process PCBs and Set them in their Ready Queue\n");
 
-//    ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
-//   ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
- //  printf("Message Envelopes Created and Linked\n");
+    ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
+    ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
+    printf("Message Envelopes Created and Linked\n");
 		 
-//  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
-//  printf("Helper Process Forked\n");
+  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
+    printf("Helper Process Forked\n");
 	  
 	 
    	initializeProcessContext();  //Will actually initialize the context of each method.
+   	printf("Process for each context is initialized\n");
 
- ptrCurrentExecuting = ptrPCBList; //When we call release processor/context swith we need to make sure that ptrCurrentExecuting is pointing to the right PCB. 
-
- printf("FirstPCB PID: %d\n", ptrCurrentExecuting->PID);
- longjmp(ptrCurrentExecuting->contextBuffer,1);//WILL JUMP TO THE FIRST EXECUTION.	
- printf("Made the jump from main and came back\n");
- 
-	//   k_release_processor(); //calls the dispatcher which would schedule the highest process to run.  In theory, the OS should never come back after this call.
-
-
-	while(1){} //TODO THIS WHILE LOOP SHOULD NEVER BE EXECUTED UNDER PROPER CONDITIONS. 
+ //	ptrCurrentExecuting = ptrPCBList; //When we call release processor/context swith we need to make sure that ptrCurrentExecuting is pointing to the right PCB. 
+		
+	 //because we call initializeProcessContext(), ptrCurrentExecuting will point to the CCI (highest priority process)
+	 printf("First To PCB Execute  PID: %d\n", ptrCurrentExecuting->PID);
+	 longjmp(ptrCurrentExecuting->contextBuffer,1);//WILL JUMP TO THE FIRST EXECUTION.	
+	 printf("In Main: Made the jump to first process and came back: FATAL ERROR - cleaning up\n");
 	
+	cleanup(); // execute cleanup if for some reason it made it here.
   return 0;
 }
 
@@ -197,9 +196,10 @@ printf("\nHousekeeping...Cleanup\n");
 
 
     int bufferSize = BUFFERSIZE;
+	
 	// terminate child process(es)
   	kill(keyboardChildPID,SIGINT);  //sends a terminate signal to child process.
-  //	kill(CRTChildPID,SIGINT);  //sends a terminate signal to child process.
+  	kill(CRTChildPID,SIGINT);  //sends a terminate signal to child process.
 
    //////////////CLEAN UP KEYBOARD  ////////////////////////
 	// remove shared memory segment and do some standard error checks
@@ -223,7 +223,7 @@ printf("\nHousekeeping...Cleanup\n");
 
     ////////////CLEAN UP CRT //////////////////
 
-  /*  status = munmap(CRTmmap_ptr, bufferSize);
+    status = munmap(CRTmmap_ptr, bufferSize);
     if (status == -1){
       printf("Bad munmap during cleanup\n");
     }
@@ -237,7 +237,8 @@ printf("\nHousekeeping...Cleanup\n");
     if (status == -1){
       printf("Bad unlink during cleanup.\n");
     }
-	*/
+	
+		/////////////// END EXECUTION ////////////
     printf("\nWill Exit RTX NOW.\n");
     exit(0); // ENDS THE EXECUTION OF THE RTX.
 
