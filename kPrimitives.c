@@ -24,12 +24,11 @@ void k_process_switch(){
 	
 	//ptrCurrentExecuting = next_PCB; // CONTEXT SWITCH ONLY WORKS WHEN WE PASS IN PTRCURRENTEXECUTING BECAUSE THATS HOW THE CONTEXT WAS INITIALIZED.
 																		// SINCE PTRCURRENTEXECUTING IS A GLOBAL PARAMETER WE DON'T NEED TO PASS IT IN. HOWEVER WE MUST MAKE SURE THAT IT IS POINTING TO WHAT WE WANT TO EXECUTE.
-
 	context_switch(next_PCB);
-	}
+}
 	
-struct messageEnvelope* k_request_message_env( )
-{
+struct messageEnvelope* k_request_message_env( ){
+
     struct messageEnvelope* temp;
 
     while(ptrMessage == NULL){ // No envelopes available
@@ -37,23 +36,25 @@ struct messageEnvelope* k_request_message_env( )
 	  ptrCurrentExecuting->PCBState = BLOCKED_MSG_ALLOCATE;
 
       int result = Enqueue(ptrCurrentExecuting, ptrPCBBlockedAllocate);
-      k_process_switch(); //TODO THIS CANNOT BE EXECUTED HERE. WE NEED TO EXECUTE IT WHEN WE CHECK FOR REQUEST MESSAGE ENVELOPE
-      return NULL; //TODO: Change this once k_process_switch() works.
-	 
+      if(result !=1)
+      printf("In k_request_message_env: Enqueue function failed to return correctly\n");
+      
+      
+      k_process_switch(); 
     }
    
     temp = ptrMessage;
 
     if(temp->ptrNextMessage==NULL)
-          ptrMessageTail= NULL; //TODO IS THIS RIGHT? shouldn't it be ptrMessageTail = ptrMessage? 
+          ptrMessageTail= NULL;
 
     ptrMessage = ptrMessage->ptrNextMessage;
     return temp;
 }
 
 
-int  k_release_message_env ( struct messageEnvelope* temp )
-{
+int  k_release_message_env ( struct messageEnvelope* temp ){
+
     if(temp == NULL) //No envelope
          return -1;
     if(ptrMessage == NULL) //Empty Message linked list
@@ -93,8 +94,7 @@ int  k_release_message_env ( struct messageEnvelope* temp )
     return 1;
 }
 
-int k_send_message( int dest_process_id, struct messageEnvelope* temp )
-{
+int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
 
 	if(temp==NULL) //No Envelope Passed.
 	{ printf("k_send_message: No envelope passed\n");
@@ -157,28 +157,17 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp )
 struct messageEnvelope* k_receive_message( )
 {
    struct messageEnvelope *temp;
-   if(ptrCurrentExecuting->ptrMessageInboxHead == NULL)
+   while(ptrCurrentExecuting->ptrMessageInboxHead == NULL)
    {
        if(ptrCurrentExecuting->PCBState == IPROCESS) //Iprocesses don't block
            return NULL;
+       
        ptrCurrentExecuting->PCBState = BLOCKED_MSG_RECEIVE; //Change state
-
-/* I DON'T BELIEVE THIS IS NECESSARY AS THE INVOKING PROCESS WON'T BE ON A READY Q
-       struct PCB* movingPCB;
-       if(ptrCurrentExecuting->processPriority == HIGH_PRIORITY)
-           movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyHigh);
-       elseif(ptrCurrentExecuting->processPriority == MED_PRIORITY)
-           movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyMed);
-       elseif(ptrCurrentExecuting->processPriority == LOW_PRIORITY)
-           movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyLow);
-       else(ptrCurrentExecuting->processPriority == NULL_PRIORITY)
-           movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyNull);
-       if(movingPCB != ptrCurrentExecuting){
-           printf("Inside k_receive_message_env: The proper PCB was not returned by the SearchPCBDequeue function. ERROR.\n");
-*/
+       
        int result = Enqueue(ptrCurrentExecuting, ptrPCBBlockedReceive);
        if (result != 1)
            printf("Inside k_receive_message_env: The invoking PCB is meant to be blocked. The Enqueue function was unable to enqueue the PCB to the Blocked on Receive Q.\n");
+       
        k_process_switch();//Call Process_switch();
    }
 
@@ -220,7 +209,20 @@ int  k_send_console_chars(struct messageEnvelope * temp )
 int  k_release_processor( )
 {
 	ptrCurrentExecuting->PCBState = READY; //Ready
-	//enqueue current process to ready queue
+	
+	if(ptrCurrentExecuting->processPriority == HIGH_PRIORITY)	//enqueue current process to ready queue
+	Enqueue(ptrCurrentExecuting,ptrPCBReadyHigh);
+	
+	else if(ptrCurrentExecuting->processPriority == MED_PRIORITY)
+	Enqueue(ptrCurrentExecuting,ptrPCBReadyMed);
+	
+	else if(ptrCurrentExecuting->processPriority == LOW_PRIORITY)
+	Enqueue(ptrCurrentExecuting,ptrPCBReadyLow);
+	
+	else if(ptrCurrentExecuting->processPriority == NULL_PRIORITY)
+	Enqueue(ptrCurrentExecuting,ptrPCBReadyNull);
+	
+
 	k_process_switch();
 	return 1;
 }
@@ -311,8 +313,7 @@ int k_terminate()
     return 1;
 }
 
-int k_get_trace_buffers( struct messageEnvelope * temp)
-{
+int k_get_trace_buffers( struct messageEnvelope * temp){
 	if(temp == NULL)
 		return -1;
 	char bufferData[32];
@@ -328,6 +329,7 @@ int k_get_trace_buffers( struct messageEnvelope * temp)
 		}
 	}
 	strcpy(temp->messageText, bufferData); //we have to decide where this gets put into a table format. CRT iprocess?
+	return 1;
 }
 			
 /////////////PRIMITIVE HELPER FUNCTIONS //////////////////////
@@ -459,6 +461,6 @@ struct PCB* ReadyProcessDequeue(){//Chuy, is there a better way to 'if' this? BR
 	ptr = Dequeue(ptrPCBReadyLow);
 	if (ptr != NULL)
 		return ptr;
-	ptr = ptrPCBReadyLow->queueHead;//NULL process is not dequeued // TODO ARE WE SURE? SO THE STATUS WILL BE EXECUTING WHEN IT IS STILL IN THE READY QUEUE.? 
+	ptr = Dequeue(ptrPCBReadyNull);
 		return ptr;
 }

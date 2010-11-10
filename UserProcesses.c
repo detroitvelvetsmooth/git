@@ -62,7 +62,7 @@ void ProcessB(){
      printf("\nProcess B code reached a point where it shouldn't. ERROR. \n");
 }
 
-void ProcessC(){
+void ProcessC(){ //TODO THIS FUNCTION IS INCOMPLETE.
      //TODO: Perform Initialization of local message queue
      struct messageEnvelope* CEnv;
      int status, count;
@@ -165,11 +165,11 @@ void CCI()
 	
 	else if(strcmp(temp->messageText, "cd")==0)
 	{
-		//change flag of wall clock to send time to CRT every second
+		displayWallClock=1;//change flag of wall clock to send time to CRT every second
 	}
 	else if(strcmp(temp->messageText, "ct")==0)
 	{
-		//change flag of wall clock to stop sending time to CRT
+		displayWallClock=0;//change flag of wall clock to stop sending time to CRT
 	}
 	else if(temp->messageText[0] == 'c') 
 	{
@@ -182,7 +182,7 @@ void CCI()
 		}
 		else
 		{
-			wall_clock(hour,min,sec); //We should make wall clock accept these values 
+			relativeTime = hour*3600+min*60+sec; //Sets the relative time. 
 		}
 	}
 	else if(strcmp(temp->messageText, "b")==0)
