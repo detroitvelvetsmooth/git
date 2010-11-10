@@ -40,7 +40,7 @@ int main (int argc, char * argv[]){
 		printf("UNIXcrt says: %s", output_text);
 		output_mem_p->completedFlag = 1;
 		output_mem_p->bufferLength = 0;
-		kill(parent_id, SIGUSR1);
+		//kill(parent_id, SIGUSR1);
 	}while(1);
 	printf("AN ISSUE HAS OCCURED WITHIN THE UNIX CRT PROCESS");
 }
