@@ -52,6 +52,7 @@
 #define PIDiProcessCRT 6
 #define PIDiProcessTimer 7
 
+void cleanup();
 //////////////// HELPER PROCESS KEYBOARD INITIALIZATION //////////////////
 
 struct Buffer  * keyboardSharedMemPointer;		// pointer to structure that is the shared memory
@@ -104,7 +105,6 @@ struct nodePCB* ptrPCBReadyHigh;
 
 struct nodePCB* ptrPCBBlockedReceive; //pointer to the blocked on message receive queue.
 struct nodePCB* ptrPCBBlockedAllocate; //pointer to the blocked on envelope allocate receive queue.
-struct nodePCB* ptrPCBTiming; // THE PCB OF THE PROCESSES THAT ARE SLEEPING WILL BE PLACED ON A TIMING QUEUE IN A "BLOCKED STATE"
 
 //////////////// EMPTY MESSAGE ENVELOPES QUEUE ///////////
 

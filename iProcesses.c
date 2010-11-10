@@ -12,9 +12,10 @@ void wallClock(){
 
 
 
-void iProcessAlarm(){
+void iProcessAlarm(){ //THIS FUNCTION IS IN A NON WORKING STATE . TODO
 
 	absoluteTime++;
+	
 	struct messageEnvelope* env = NULL;
 	env = k_receive_message();
 	if (env != NULL){//if sleep request appears
@@ -35,7 +36,8 @@ void iProcessAlarm(){
 
 }
 
-void iProcessCRT(){
+void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
+
 	if((*CRTSharedMemPointer).completedFlag == 1){//Indicates CRT has completed copying. Means empty buffer.
 		struct messageEnvelope* env = NULL;
 		env = k_receive_message();//primitive name
@@ -48,31 +50,33 @@ void iProcessCRT(){
 	            (*CRTSharedMemPointer).completedFlag = 0; //Indicate to UNIXCRT that buffer is loaded
 	            k_send_message(env->PIDSender,env);
 	        }
-         }
+  }
 }
 
 void iProcessKeyboard(){
 
-if((*keyboardSharedMemPointer).completedFlag == 1)
-{
-	messageEnvelope* env = NULL;
-	env = k_receive_message();
-		if (env != NULL){
-                    //strcpy(env->data, (*keyboardShareMemPointer).data);
-		    int bufferLength = (*keyboardSharedMemPointer).bufferLength;
-		    for(int i = 0; i < bufferLength; i++){//assume env->data is a char[MAXCHAR]?
-		       env->data[i] = (*keyboardSharedMemPointer).data[i];
-	    	    }
-		    env->messageType = MSGCONSOLEINPUT;
-		    (*keyboardSharedMemPointer).completedFlag = 0;
-		    (*keyboardSharedMemPointer).bufferLength = 0;
-		    k_send_message(env->PIDSender, env);
-		    //printf("Found in Data Buffer: %s\n",dataBuffer);
+	if((*keyboardSharedMemPointer).completedFlag == 1)
+	{
+		messageEnvelope* env = NULL;
+		env = k_receive_message();
+			if (env != NULL){
+	                    //strcpy(env->data, (*keyboardShareMemPointer).data);
+			    int bufferLength = (*keyboardSharedMemPointer).bufferLength;
+			    
+			    for(int i = 0; i < bufferLength; i++){//assume env->data is a char[MAXCHAR]?
+			       env->data[i] = (*keyboardSharedMemPointer).data[i];
+		    	}
+		    	
+			    env->messageType = MSGCONSOLEINPUT;
+			    (*keyboardSharedMemPointer).completedFlag = 0;
+			    (*keyboardSharedMemPointer).bufferLength = 0;
+			    k_send_message(env->PIDSender, env);
+			    
+			}
 		}
+	else{
+		k_release_message_env(env);//if mem not ready, ignore env; will never happen (SINCE COMPUTERS ARE FAAAAST)
 	}
-else{
-	k_release_message_env(env);//if mem not ready, ignore env; will never happen
-}
 }
 
 
