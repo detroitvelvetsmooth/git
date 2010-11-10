@@ -7,9 +7,9 @@
 
 struct messageEnvelope* ProcessCQHead;
 struct messageEnvelope* ProcessCQTail;
-void CEnqueue(struct CQueue* tempQ, struct messageEnvelope* newEnv);
-struct messageEnvelope* CDequeue(struct CQueue* tempQ);
-int isEmpty(struct CQueue* tempQ);
+void CEnqueue(struct messageEnvelope* newEnv);
+struct messageEnvelope* CDequeue();
+int isCQEmpty();
 
 ///////////////// PROCESSES ////////////////////
 
@@ -59,8 +59,8 @@ void ProcessB(){
 
 void ProcessC(){
      //TODO: Perform Initialization of local message queue
-     QHead = NULL;
-     QTail = NULL;
+     ProcessCQHead = NULL;
+     ProcessCQTail = NULL;
      struct messageEnvelope* CEnv;
      int status, count;
      
@@ -78,7 +78,7 @@ void ProcessC(){
             count = atoi(CEnv->messageText);
             if ((count%20) == 0){ 
               
-               strcpy(CEnv->messageText, "Process C\0";
+               strcpy(CEnv->messageText, "Process C\0");
                
                status = send_console_chars(CEnv);
                if (status != 1)
@@ -92,13 +92,13 @@ void ProcessC(){
                //Request Sleep.
                CEnv->messageType = MSGTYPESLEEP;
                strcpy(CEnv->messageText, "10\0");
-               request_delay(CEnv); //TODO: Fill in Proper function name.
+               //request_delay(CEnv); //TODO: Fill in Proper function name.
                //Once done sleeping, enqueue all messages received during sleep to the local queue.
                do{
                   CEnv = receive_message();
                   if (CEnv->messageType == MSGTYPEWAKEUP)
                       break;
-                  LocalEnqueue(CEnv);
+                  CEnqueue(CEnv);
                }while(1);
             }
         }
@@ -126,7 +126,7 @@ void CCI()
 	
 	while(1)
 	{
-	if(temp->messageType != MESSAGECONCOLEINPUT)
+	if(temp->messageType != MSGCONSOLEINPUT)
 		printf("This was not a command message");
 	else
 	{
@@ -139,7 +139,7 @@ void CCI()
 	
 		if(strcmp(temp->messageText, "test\0")==0) //REMOVE THE 'TEST'
 		{
-			strcpy(temp->messageText, "Hello\0") //TODO just for testing...
+			strcpy(temp->messageText, "Hello\0"); //TODO just for testing...
 			send_console_chars(temp);
 			temp = receive_message();
 			//get_console_chars(temp);
@@ -191,7 +191,7 @@ void CCI()
 		}
 		else if(temp->messageText[0] == 'n')
 		{
-			sscanf(temp->messageText, "%c &d &d", &tempChar, &newPri, &PID); //needs to check if correct number of items passed
+			sscanf(temp->messageText, "%c %d %d", &tempChar, &newPri, &PID); //needs to check if correct number of items passed
 			int check = change_priority(newPri, PID);
 			if(check == -1)
 			{
@@ -223,7 +223,7 @@ struct messageEnvelope* CDequeue(){
     //Empty Queue Case
     if(ProcessCQHead==NULL){
        printf("CDequeue: Dequeue requested, but Process C's Q is empty.\n");
-       return returnEnv;
+       return NULL;
     }
     //Standard Case
     else{

@@ -31,8 +31,8 @@ int main (int argc, char * argv[]){
 	}
 
 	output_mem_p =(struct Buffer*) mmap_ptr;
-	output_mem_p->data[0] = "\0";
-	int i;
+	output_mem_p->data[0] = '\0';
+
 	do{
 		while(output_mem_p->completedFlag == 0) //Wait until buffer is ready
 			usleep(500);

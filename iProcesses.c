@@ -49,8 +49,8 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 		env = k_receive_message();//primitive name
 	
 		if (env != NULL){ //which it should always be the case
-		    int i;
-		    strcpy((*CRTSharedMemPointer).data, env->data);//Copies the contents of env->data to buffer
+		    
+		    strcpy((*CRTSharedMemPointer).data, env->messageText);//Copies the contents of env->data to buffer
 	      env->messageType = MSGTYPEACK;
 	      (*CRTSharedMemPointer).completedFlag = 0; //Indicate to UNIXCRT that buffer is loaded
 	      k_send_message(env->PIDSender,env);
@@ -59,22 +59,26 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 }
 
 void iProcessKeyboard(){
+	
+	struct messageEnvelope* env = NULL;
+	env = k_receive_message();
 
 	if((*keyboardSharedMemPointer).completedFlag == 1)
-	{
-		messageEnvelope* env = NULL;
-		env = k_receive_message();
+	{		
 			if (env != NULL){
 	        
-	        strcpy(env->data, (*keyboardShareMemPointer).data);
+	        strcpy(env->messageText, (*keyboardSharedMemPointer).data);
 			    env->messageType = MSGCONSOLEINPUT;
 			    (*keyboardSharedMemPointer).completedFlag = 0;
 			    k_send_message(env->PIDSender, env);
 			}
-		}
+	}	
 	else{
-		k_release_message_env(env);//if mem not ready, ignore env; will never happen (SINCE COMPUTERS ARE FAAAAST)
+			
+			if(env!=NULL)
+			k_release_message_env(env);//if mem not ready, ignore env; will never happen (SINCE COMPUTERS ARE FAAAAST)
 	}
+	
 }
 
 /*int TimingListEnqueue(struct messageEnvelope* env){

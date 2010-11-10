@@ -19,6 +19,7 @@ int  k_request_process_status(struct messageEnvelope * temp );
 
 int  k_change_priority(int new_priority, int targetID); 
 int  k_request_delay(int delay, int wakeup_code, struct messageEnvelope * temp);
+int  k_get_trace_buffers(struct messageEnvelope* temp);
 int  k_terminate();
 
 //////////// AUXILLARY TO PRIMITIVES ///////////////

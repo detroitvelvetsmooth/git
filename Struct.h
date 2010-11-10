@@ -55,7 +55,7 @@
 ////////////// MISCELLANEOUS FUNCTIONS USED BY INITIALIZING METHODS ////////////
 void ProcessA();
 void ProcessB();
-void ProcessB();
+void ProcessC();
 void NullProcess();
 void CCI();
 void cleanup();

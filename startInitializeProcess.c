@@ -1,6 +1,7 @@
 #include "Struct.h"
-#include "FoolAround.c"
-#include //the usr processes.
+
+//#include "FoolAround.c"
+
 
 
 /* This method will initialize the processes appropriately by first looping through an initialization table and creating and linking the PCBs
