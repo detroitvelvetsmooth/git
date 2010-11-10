@@ -67,7 +67,7 @@ void ProcessC(){
      //Start infinite loop.
      do{
         //Check local queue for waiting messages. Dequeue a waiting message, otherwise receive message.
-        if(isEmpty(LocalQueue)==0) 
+        if(isCQEmpty()==0) 
             CEnv = receive_message();
         else
             CEnv = CDequeue();
