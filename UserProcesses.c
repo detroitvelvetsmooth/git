@@ -139,78 +139,86 @@ void CCI()
 	
 	while(1)
 	{
-	strcpy(temp->messageText, "CCI:\0"); 
-	send_message((int)(PIDiProcessCRT), temp);
-	temp = receive_message();
-	
-	get_console_chars(temp);
-	temp = receive_message(); //assuming KB iProcess sends evn back to process
-	
-	if(strcmp(temp->messageText, " ")==0)
+	if(temp->messageType != MESSAGECONCOLEINPUT)
+		printf("This was not a command message");
+	else
 	{
+		strcpy(temp->messageText, "CCI:\0"); 
+		send_message((int)(PIDiProcessCRT), temp);
+		temp = receive_message();
+	
 		get_console_chars(temp);
-		temp = receive_message();
-	}
-	else if(strcmp(temp->messageText, "s")==0)
-	{
-		send_message((int)(PIDUserProcessA), temp);
-		release_processor(); 
-	}
-	else if(strcmp(temp->messageText, "ps")==0)
-	{
-		request_process_status(temp);
-		send_console_chars(temp); //we need to figure out where the status info get put into a table format. Here??
-		temp = receive_message();
-	}
+		temp = receive_message(); //assuming KB iProcess sends evn back to process
 	
-	else if(strcmp(temp->messageText, "cd")==0)
-	{
-		displayWallClock=1;//change flag of wall clock to send time to CRT every second
-	}
-	else if(strcmp(temp->messageText, "ct")==0)
-	{
-		displayWallClock=0;//change flag of wall clock to stop sending time to CRT
-	}
-	else if(temp->messageText[0] == 'c') 
-	{
-		sscanf(temp->messageText, "%c %d:%d:%d", &tempChar, &hour, &min, &sec); //needs to check if correct number of items passed
-		if(hour < 0 || hour >=24 || min < 0 || min >=60 || sec < 0 || sec >= 60)
+		if(strcmp(temp->messageText, "\0")==0)
 		{
-			strcpy(temp->messageText, "Illegal Time Entered\0");
+			strcpy(temp->messageText, "Hello\0") //TODO just for testing...
 			send_console_chars(temp);
 			temp = receive_message();
+			//get_console_chars(temp);
+			//temp = receive_message();
+		}
+		else if(strcmp(temp->messageText, "s\0")==0)
+		{
+			send_message((int)(PIDUserProcessA), temp);
+			release_processor(); 
+		}
+		else if(strcmp(temp->messageText, "ps\0")==0)
+		{
+			request_process_status(temp);
+			send_console_chars(temp); //we need to figure out where the status info get put into a table format. Here??
+			temp = receive_message();
+		}
+	
+		else if(strcmp(temp->messageText, "cd\0")==0)
+		{
+			displayWallClock=1;//change flag of wall clock to send time to CRT every second
+		}
+		else if(strcmp(temp->messageText, "ct\0")==0)
+		{
+			displayWallClock=0;//change flag of wall clock to stop sending time to CRT
+		}
+		else if(temp->messageText[0] == 'c') 
+		{
+			sscanf(temp->messageText, "%c %d:%d:%d", &tempChar, &hour, &min, &sec); //needs to check if correct number of items passed
+			if(hour < 0 || hour >=24 || min < 0 || min >=60 || sec < 0 || sec >= 60)
+			{
+				strcpy(temp->messageText, "Illegal Time Entered\0");
+				send_console_chars(temp);
+				temp = receive_message();
+			}
+			else
+			{
+				relativeTime = hour*3600+min*60+sec; //Sets the relative time. 
+			}
+		}
+		else if(strcmp(temp->messageText, "b\0")==0)
+		{
+			get_trace_buffers(temp);
+			send_console_chars(temp);
+			temp = receive_message();
+		}
+		else if(strcmp(temp->messageText, "t\0")==0)
+		{
+			terminate();
+		}
+		else if(temp->messageText[0] == 'n')
+		{
+			sscanf(temp->messageText, "%c &d &d", &tempChar, &newPri, &PID); //needs to check if correct number of items passed
+			int check = change_priority(newPri, PID);
+			if(check == -1)
+			{
+				strcpy(temp->messageText, "Priority Change Failed\0");
+				send_console_chars(temp);
+				temp = receive_message();
+			}
 		}
 		else
 		{
-			relativeTime = hour*3600+min*60+sec; //Sets the relative time. 
-		}
-	}
-	else if(strcmp(temp->messageText, "b")==0)
-	{
-		get_trace_buffers(temp);
-		send_console_chars(temp);
-		temp = receive_message();
-	}
-	else if(strcmp(temp->messageText, "t")==0)
-	{
-		terminate();
-	}
-	else 	if(temp->messageText[0] == 'n')
-	{
-		sscanf(temp->messageText, "%c &d &d", &tempChar, &newPri, &PID); //needs to check if correct number of items passed
-		int check = change_priority(newPri, PID);
-		if(check == -1)
-		{
-			strcpy(temp->messageText, "Priority Change Failed\0");
+			strcpy(temp->messageText, "Illegal Command\0");
 			send_console_chars(temp);
 			temp = receive_message();
 		}
-	}
-	else
-	{
-		strcpy(temp->messageText, "Illegal Command\0");
-		send_console_chars(temp);
-		temp = receive_message();
 	}
 	}
 }
