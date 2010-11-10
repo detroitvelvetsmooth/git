@@ -81,33 +81,37 @@ void iProcessKeyboard(){
 
 	if (env != NULL){
 	
-  struct messageEnvelope* temporary = NULL; // 
-	temporary = ptrTimingList; //TEMPORARY POINTS TO THE FRONT OF THE LIST. 
-	
-	if (env->sleepTicks < temporary->sleepTicks){//case 1: front of list insertion
-		ptrTimingList = env;
-		env->ptrNextMessage = temporary;
-		temporary->sleepTicks = temporary->sleepTicks - env->sleepTicks;
-		return 1;
-	}
-	
-	env->sleepTicks = env->sleepTicks - temporary->sleepTicks;
-	
-	while (ptr->ptrNextMessage){//this while condition sucks
-		if (env->ticks < ptr->ptrNextMessage->ticks){//will tail insertion work?
-			env->ptrNextMessage = ptr->ptrNextMessage;
-			ptr->ptrNextMessage = env;
+		if(ptrTimingList == NULL){//case 1: TimingQueue is empty
+			ptrTimingList = env;
+			env->ptrNextMessage = NULL;
 			}
-		ptr = ptr->ptrNextMessage;
-		env->ticks -= ptr->ticks;
-	}
-	ptr = env->ptrNextMessage;
-	do{
-	ptr->ticks -= env->ticks;
-	ptr = ptr->ptrNextMessage;	
-	}while (ptr);//decrements all following envs
 		
+		struct messageEnvelope* temporary = NULL;
+		temporary = ptrTimingList; //TEMPORARY POINTS TO THE FRONT OF THE LIST. 
+	
+	
+		if (env->sleepTicks < temporary->sleepTicks){//case 2:insertion to front of list
+			ptrTimingList = env;
+			env->ptrNextMessage = temporary;
+			temporary->sleepTicks = temporary->sleepTicks - env->sleepTicks;
+			return 1;
+		}
+	
+		env->sleepTicks = env->sleepTicks - temporary->sleepTicks;
+	
+		while (env->sleepTicks >= temporary->ptrNextMessage->sleepTicks){//case 3: general insertion
+			env->sleepTicks = env->sleepTicks - temporary->ptrNextMessage->sleepTicks;
+			temporary = temporary->ptrNextMessage;
+			}
+			env->ptrNextMessage = temporary->ptrNextMessage;
+			temporary->ptrNextMessage = env;
+			if (env->ptrNextMessage)//case 4: insertion as last Queue element
+				env->ptrNextMessage->sleepTicks = env->ptrNextMessage->sleepTicks - env->sleepTicks;
+			return 1;
+		}
+		return 0;//case 5: if env is NULL
 	}
+
 }
 */
 

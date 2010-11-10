@@ -13,7 +13,6 @@ int main (int argc, char * argv[]){
 	
 	int parent_id, file_id;
 	int bufferSize = BUFFERSIZE;
-	int maxChar = MAXCHAR; 
 	caddr_t mmap_ptr;
 
 	struct Buffer * input_mem_p;
@@ -32,31 +31,21 @@ int main (int argc, char * argv[]){
 		printf("The memory mapping for the child failed.");
 	input_mem_p = (struct Buffer *)mmap_ptr;
 	input_mem_p->completedFlag = 0;
-	input_mem_p->bufferLength = 0;
-	
+        input_mem_p->data[0] = "\0";
 	printf("Please Enter your Character:\n");
 	
 	do{
-
 		c = getchar();
-		
-
 		if (c == '\n'){ //sends signal to the mainRTX. 
-			input_mem_p->data[input_mem_p->bufferLength]='\0';
 			input_mem_p->completedFlag = 1;
 			kill(parent_id, SIGUSR2);
 			while (input_mem_p->completedFlag == 1)
-				sleep(1);
+			sleep(1);
 		}
 		else{
-			if(input_mem_p->bufferLength < maxChar){ //checks that there is still some space in the buffer. 
-			
-				input_mem_p->data[input_mem_p->bufferLength]=c;
-				input_mem_p->bufferLength++;
-			
-				
+			if(strlen(input_mem_p->data) < MAXCHAR){ //checks that there is still some space in the buffer. 
+				strcat(input_mem_p->data,c);
 			}
-
 		}
 	}while(1);
 	printf("THERE IS AN ERROR IN THE UNIX KEYBOARD PROCESS");
