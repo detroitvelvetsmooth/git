@@ -1,5 +1,9 @@
 #include "Struct.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
+#define MAXCHAR 4
 
 void context_switch(struct PCB * new) {
 
@@ -36,5 +40,45 @@ void testContextB()
 }
 
 
+int main(){
+    int count;
+    count = 512;
+    char temp[5];
+    char tab[5];
+    
+    tab[0] = 0;
+    itoa(count, temp, 10);  //Copy contents of count into temp, count is base 10
+    
+    
+    printf("Temp Contents: %s\n", temp);
+    printf("Temp Length: %d\n", strlen(temp)); 
+    
+    strcat(temp, "5");
+    
+    printf("Temp Contents: %s\n", temp);
+    printf("Temp Length: %d\n", strlen(temp)); 
+    
+    count = atoi(temp); //Copy contents of temp back to count, converts it to base 10 int
+    
+    printf("Temp Contents: %s\n", temp);    
+    printf("Temp Length: %d\n", strlen(temp));
+    count++;
+    printf("Count Value: %d\n", count);
+    
+    //EXAMPLE OF PARSING
+    char str[] ="hh:mm:ss";
+    char * pch;
+    printf ("Splitting string \"%s\" into tokens:\n",str);
+    pch = strtok (str,":"); // Gets the first parsed section
+    while (pch != NULL)
+    {
+      printf ("%s\n",pch);
+      pch = strtok (NULL, ":"); //Retrieve remaining tokens (parsed sections).
+    }
+    
+    system("PAUSE");
+    return 0;
+    
+}
 
 
