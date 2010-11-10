@@ -1,4 +1,5 @@
 #include "Struct.h"
+#include "FoolAround.c"
 
 
 /* This method will initialize the processes appropriately by first looping through an initialization table and creating and linking the PCBs
@@ -21,12 +22,12 @@ void (*processProgramCounter[numProcesses])(); //array of function pointers.
 processPID[0] = PIDUserProcessA;
 processPriority[0] = MED_PRIORITY;
 processType[0] = READY;
-processProgramCounter[0] = NULL; //Need to know the method name of each process.
+processProgramCounter[0] = testContextA; //Need to know the method name of each process.
 
 processPID[1] = PIDUserProcessB;
 processPriority[1] = MED_PRIORITY;
 processType[1] = READY;
-processProgramCounter[1] = NULL;//Need to know the method name of each process.
+processProgramCounter[1] = testContextB;//Need to know the method name of each process.
 
 processPID[2] = PIDUserProcessC;
 processPriority[2] = MED_PRIORITY;
@@ -161,25 +162,29 @@ return ptrPCBHead;
 
 }
 
-void initializeProcessContext(struct PCB* ptrPCBList){
+
+
+
+void initializeProcessContext(){
 //INITIALIZES THE PROCESS CONTEXT. UNSURE ABOUT THIS SECTION.
 
 //TODO - I AM UNSURE OF WHEN TO PUT THE CURRENT PROCESS POINTER, SHOULD THAT BE DONE BY THE SCHEDULER OR WHAT?
 
-	struct PCB* ptrPCBTemporary = ptrPCBList; // create temporary pointer to loop through
+  ptrCurrentExecuting = ptrPCBList; // create temporary pointer to loop through
 	jmp_buf kernel_buf;  // temporary context buffer.
 	char * stackInit;  //temporary stack pointer.
 
-	while(ptrPCBTemporary!=NULL){
+	while(ptrCurrentExecuting!=NULL){
 
+	printf("Entered initialize loop\n");
 
-		if((*ptrPCBTemporary).PCBState!= IPROCESS) //IPROCESSES WILL HAVE NO CONTEXT AND WILL BE JUST PCB.s
+		if((*ptrCurrentExecuting).PCBState!= IPROCESS) //IPROCESSES WILL HAVE NO CONTEXT AND WILL BE JUST PCB.s
 		{
 
 
 		if (setjmp(kernel_buf)==0){ //saves current context temporarily.
 
-			stackInit = (*ptrPCBTemporary).ptrStack; //obtain the stack pointer for the current PCB
+			stackInit = (*ptrCurrentExecuting).ptrStack; //obtain the stack pointer for the current PCB
 
 			#ifdef i386
 			__asm__ ("movl %0,%%esp" :"=m" (stackInit)); // if Linux i386 target
@@ -190,22 +195,29 @@ void initializeProcessContext(struct PCB* ptrPCBList){
 			#endif
 				// replace the current stack pointer with the PCB stack pointer.
 
-			if(setjmp((*ptrPCBTemporary).contextBuffer)==0){ //initialize the context of the process, which will return zero.
+			if(setjmp((*ptrCurrentExecuting).contextBuffer)==0){ //initialize the context of the process, which will return zero.
 
 						longjmp(kernel_buf,1);
 			}
 			else{
-				void (*tmp_fn) (); // initialize a function pointer that takes no parameters and returns void
-				tmp_fn = (*ptrPCBTemporary).programCounter;
-				tmp_fn();	 //executes the process for the first time. starting at the program counter location.
-
+				
+				printf("This PCB PID: %d\n", ptrCurrentExecuting->PID);
+		
+//			void (*tmp_fn) (); // initialize a function pointer that takes no parameters and returns void			
+				ptrCurrentExecuting->programCounter(); //executes for the first time. 
+				
+//			tmp_fn = (*ptrCurrentExecuting).programCounter;
+ //	 		tmp_fn();	 //executes the process for the first time. starting at the program counter location.
+			  printf("Should never make it here\n");
+			
 			}
 
 		}
 	// we update our current process
-	ptrPCBTemporary = (*ptrPCBTemporary).ptrNextPCBList;
 
 		}
+		
+	ptrCurrentExecuting = (*ptrCurrentExecuting).ptrNextPCBList;
 	}
 
 }

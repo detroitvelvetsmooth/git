@@ -11,7 +11,7 @@ void signalAssociation(); //Will associate signals with the signal handler who w
 
 struct PCB * initializeProcessPCB();									 //Creates PCB list
 void initializeProcessReadyQueue();  									 //Inserts PCB list into priority queues. 
-void initializeProcessContext(struct PCB* ptrPCBList); //Initializes Process context for each PCB
+void initializeProcessContext(); //Initializes Process context for each PCB
 void cleanup();  																			 //Cleans up the shared memory and kills helper processes. 
 void forkAuxillaryProcess();                           //Forks childs proceses.
 

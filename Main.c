@@ -30,7 +30,7 @@ sendTraceBufferIndexTail = 0;
 
 ///////////// GENERAL PCB LIST /////////////////////////
 
-ptrCurrentExecuting = NULL; //will point to the currently executing Process.
+ptrCurrentExecuting = NULL; //will point to the currently executing Process. and used for context initialization.
 
 ptrPCBList = NULL; //ptr that will link to the PCB list (which will remain somewhat static once initialized
 ptrPCBListTail = NULL; //this tail ptr may or may not be required.
@@ -72,27 +72,33 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 /////////////// LOGIC EXECUTION STARTS HERE ////////////////////
 	
 		
-		signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
+	//	signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
 	//	printf("Signals Associated\n");
 	
-  	ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
+  //	ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
 	//	printf("Ualarm Set\n");
 	
 	
 		ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
-		initializeProcessReadyQueue();
+//	initializeProcessReadyQueue();
 
-    ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
-    ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
+//    ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
+//   ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
  //  printf("Message Envelopes Created and Linked\n");
 		 
-  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
+//  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
 //  printf("Helper Process Forked\n");
 	  
 	 
-   	initializeProcessContext(ptrPCBList);  //Will actually initialize the context of each method.
+   	initializeProcessContext();  //Will actually initialize the context of each method.
+
+ ptrCurrentExecuting=ptrPCBList; // points to first pcb 
+
+ printf("FirstPCB PID: %d\n", ptrCurrentExecuting->PID);
+ longjmp(ptrCurrentExecuting->contextBuffer,1);//WILL JUMP TO THE FIRST EXECUTION.	
+ printf("Made the jump from main and came back\n");
  
-	   k_release_processor(); //calls the dispatcher which would schedule the highest process to run.  In theory, the OS should never come back after this call.
+	//   k_release_processor(); //calls the dispatcher which would schedule the highest process to run.  In theory, the OS should never come back after this call.
 
 
 	while(1){} //TODO THIS WHILE LOOP SHOULD NEVER BE EXECUTED UNDER PROPER CONDITIONS. 
