@@ -139,7 +139,7 @@ void CCI()
 	
 	while(1)
 	{
-	strcpy(temp->messageText, "CCI:"); 
+	strcpy(temp->messageText, "CCI:\0"); 
 	send_message((int)(PIDiProcessCRT), temp);
 	temp = receive_message();
 	
@@ -176,7 +176,7 @@ void CCI()
 		sscanf(temp->messageText, "%c %d:%d:%d", &tempChar, &hour, &min, &sec); //needs to check if correct number of items passed
 		if(hour < 0 || hour >=24 || min < 0 || min >=60 || sec < 0 || sec >= 60)
 		{
-			strcpy(temp->messageText, "Illegal Time Entered");
+			strcpy(temp->messageText, "Illegal Time Entered\0");
 			send_console_chars(temp);
 			temp = receive_message();
 		}
@@ -201,14 +201,14 @@ void CCI()
 		int check = change_priority(newPri, PID);
 		if(check == -1)
 		{
-			strcpy(temp->messageText, "Priority Change Failed");
+			strcpy(temp->messageText, "Priority Change Failed\0");
 			send_console_chars(temp);
 			temp = receive_message();
 		}
 	}
 	else
 	{
-		strcpy(temp->messageText, "Illegal Command");
+		strcpy(temp->messageText, "Illegal Command\0");
 		send_console_chars(temp);
 		temp = receive_message();
 	}
