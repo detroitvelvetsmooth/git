@@ -80,7 +80,7 @@ struct messageEnvelope* ptrTimingList; // will be a  pointer to a linked list th
 
 ////////////// TRACE BUFFERS ///////////////////
 
-int sendTraceBuffer[16][3];
+int sendTraceBuffer[16][3];		// [0] will be PID, [1] will be state, and [2] will be priority
 int receiveTraceBuffer[16][3]; // for the time being the trace buffers will be 2 dimensional arrays  but these could later change to an array of structs.
 
 int receiveTraceBufferIndexHead;

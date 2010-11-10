@@ -92,3 +92,10 @@ int  terminate()
     return 1;
 }
 
+int  get_trace_buffers(struct messageEnvelope * temp)
+{
+    atomic(1);
+	k_get_trace_buffers(temp);
+	atomic(0);
+    return 1;
+}

@@ -1,4 +1,6 @@
 #include "Struct.h"
+#include <stdio.h>
+#include <string.h>
 
 
 ///////////// AUXILLARY FUNCTIONS PROTOTYPES //////////////////
@@ -324,6 +326,27 @@ int k_terminate()
     cleanup();
     return 1;
 }
+
+int k_get_trace_buffers( struct messageEnvelope * temp)
+{
+	if(temp == NULL)
+		return -1;
+	char bufferData[32];
+	int i, j, k;
+	k = 0;
+	for(i=0; i<16; i++)
+	{
+		for(j=0; j<3; j++)
+		{
+			bufferData[k] = sendTraceBuffer[i][j];
+			bufferData[k+16] = receiveTraceBuffer[i][j];
+			k++
+		}
+	}
+	strcpy(temp->messageText, bufferDate); //we have to decide where this gets put into a table format. CRT iprocess?
+}
+			
+
 
 
 /////////////PRIMITIVE HELPER FUNCTIONS //////////////////////
