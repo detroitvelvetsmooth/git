@@ -52,6 +52,12 @@
 #define PIDiProcessCRT 6
 #define PIDiProcessTimer 7
 
+////////////// MISCELLANEOUS FUNCTIONS USED BY INITIALIZING METHODS ////////////
+void ProcessA();
+void ProcessB();
+void ProcessB();
+void NullProcess();
+void CCI();
 void cleanup();
 //////////////// HELPER PROCESS KEYBOARD INITIALIZATION //////////////////
 
@@ -112,6 +118,8 @@ struct messageEnvelope* ptrMessage;
 struct messageEnvelope* ptrMessageTail;  //will be used as pointers to the head and tail of the messageEnvelope queue. The tail will be used to add
 
 
+///////// STRUCT DEFINITIONS ////////////
+
 struct Buffer{
 	int completedFlag;
 	char data[MAXCHAR];
@@ -142,7 +150,7 @@ struct PCB{
 	int processPriority; //Will contain the priority of each process.
 
 	void (*programCounter)(); // will contain a ptr to the initial start of the process. hence it is a ptr to a function (THIS MAY BE WRONG)
-	char * ptrStack; //contain a ptr to the stack. Unsure of the type  TODO.
+	char * ptrStack; //contain a ptr to the stack. 
 
 	struct PCB* ptrNextPCBList; //will link to the next PCB in the main PCB List
 	struct PCB* ptrNextPCBQueue; //will link to the next PCB in whatever queue they may be (running/blocked on resource/executing)

@@ -7,7 +7,7 @@
 
 // THESE ARE DEFINED AT THE BOTTOM OF THE FILE. 
 
-void context_switch(jmp_buf last_PCB, jmp_buf next_PCB);
+void context_switch(struct PCB* next_PCB);
 void atomic(int on);
 struct PCB * getPCB(int findPID);
 int Enqueue(struct PCB* ptr,struct nodePCB* Q);
@@ -17,38 +17,35 @@ struct PCB* ReadyProcessDequeue();
 
 ///////////// KPRIMITIVES ///////////////////
 
+void k_process_switch(){
+
+ struct	PCB* next_PCB = ReadyProcessDequeue(); //finds the next pcb to execute with the highest priority.
+	next_PCB->PCBState = EXECUTING;
+	
+	//ptrCurrentExecuting = next_PCB; // CONTEXT SWITCH ONLY WORKS WHEN WE PASS IN PTRCURRENTEXECUTING BECAUSE THATS HOW THE CONTEXT WAS INITIALIZED.
+																		// SINCE PTRCURRENTEXECUTING IS A GLOBAL PARAMETER WE DON'T NEED TO PASS IT IN. HOWEVER WE MUST MAKE SURE THAT IT IS POINTING TO WHAT WE WANT TO EXECUTE.
+
+	context_switch(next_PCB);
+	}
+	
 struct messageEnvelope* k_request_message_env( )
 {
     struct messageEnvelope* temp;
 
-    if(ptrMessage == NULL) // No envelopes available
-    {
+    while(ptrMessage == NULL){ // No envelopes available
+    
 	  ptrCurrentExecuting->PCBState = BLOCKED_MSG_ALLOCATE;
 
-/* THIS PART IS PROBABLY WRONG AS THE INVOKING PCB WILL NOT BE ON A READY QUEUE
-	  struct PCB* movingPCB;
-          if(ptrCurrentExecuting->processPriority == HIGH_PRIORITY)
-              movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyHigh);
-          elseif(ptrCurrentExecuting->processPriority == MED_PRIORITY)
-              movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyMed);
-          elseif(ptrCurrentExecuting->processPriority == LOW_PRIORITY)
-              movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyLow);
-          else(ptrCurrentExecuting->processPriority == NULL_PRIORITY)
-              movingPCB = SearchPCBDequeue(ptrCurrentExecuting->PID, ptrPCBReadyNull);
-          if(movingPCB != ptrCurrentExecuting){
-              printf("Inside k_request_message_env: The proper PCB was not returned by the SearchPCBDequeue function. ERROR.\n");
-          }
-*/
-          int result = Enqueue(ptrCurrentExecuting, ptrPCBBlockedAllocate);
-          return NULL; //TODO: Change this once k_process_switch() works.
-	  //k_process_switch();
+      int result = Enqueue(ptrCurrentExecuting, ptrPCBBlockedAllocate);
+      k_process_switch(); //TODO THIS CANNOT BE EXECUTED HERE. WE NEED TO EXECUTE IT WHEN WE CHECK FOR REQUEST MESSAGE ENVELOPE
+      return NULL; //TODO: Change this once k_process_switch() works.
+	 
     }
-    //temp = (struct messageEnvelope *)malloc(sizeof(struct messageEnvelope ));
-
+   
     temp = ptrMessage;
 
     if(temp->ptrNextMessage==NULL)
-          ptrMessageTail= NULL;
+          ptrMessageTail= NULL; //TODO IS THIS RIGHT? shouldn't it be ptrMessageTail = ptrMessage? 
 
     ptrMessage = ptrMessage->ptrNextMessage;
     return temp;
@@ -156,19 +153,6 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp )
 	*/
 	return 0;
 }
-
-void k_process_switch(){
-
- struct	PCB* next_PCB = NULL;
- struct	PCB* last_PCB = NULL;
-
-	next_PCB = ReadyProcessDequeue();
-	next_PCB->PCBState = EXECUTING;
-	last_PCB = ptrCurrentExecuting;
-	ptrCurrentExecuting = next_PCB;
-
-	context_switch(last_PCB->contextBuffer, next_PCB->contextBuffer);
-	}
 
 struct messageEnvelope* k_receive_message( )
 {
@@ -309,7 +293,7 @@ int  k_change_priority(int new_priority, int targetID){
     return 1;
 }
 
-int  k_request_delay( int delay, int wakeup_code, struct messageEnvelope * temp )
+int  k_request_delay( int delay, int wakeup_code, struct messageEnvelope * temp )// TODO THIS FUNCTION IS INCOMPLETE.
 {
     if(temp == NULL)
         return -1;
@@ -340,23 +324,21 @@ int k_get_trace_buffers( struct messageEnvelope * temp)
 		{
 			bufferData[k] = sendTraceBuffer[i][j];
 			bufferData[k+16] = receiveTraceBuffer[i][j];
-			k++
+			k++;
 		}
 	}
-	strcpy(temp->messageText, bufferDate); //we have to decide where this gets put into a table format. CRT iprocess?
+	strcpy(temp->messageText, bufferData); //we have to decide where this gets put into a table format. CRT iprocess?
 }
 			
-
-
-
 /////////////PRIMITIVE HELPER FUNCTIONS //////////////////////
 
-void context_switch(jmp_buf last_PCB, jmp_buf next_PCB){
+void context_switch(struct PCB* next_PCB){
 
-	int return_code = setjmp(last_PCB);
+	int return_code = setjmp(ptrCurrentExecuting->contextBuffer);
 
 	if(return_code == 0)
-		longjmp(next_PCB,1);//will it work on next_PCB's 1st execution?
+	ptrCurrentExecuting = next_PCB;
+	longjmp(ptrCurrentExecuting->contextBuffer,1);//will it work on next_PCB's 1st execution? IT SHOULD NOW. 
 	}
 
 void atomic(int on) {
@@ -441,10 +423,12 @@ struct PCB* SearchPCBDequeue(int searchPID, struct nodePCB* Q){
 		}
 		if(Q->queueHead->PID == searchPID){//special case: first element
 			Q->queueHead = Q->queueHead->ptrNextPCBQueue;
+			
 			if(Q->queueHead == NULL)
                 Q->queueTail = NULL;
             return returnPCB;
 		}
+		
 		if(Q->queueHead == Q->queueTail)
             return NULL; //Q of length 1.
         temp = returnPCB;
@@ -475,6 +459,6 @@ struct PCB* ReadyProcessDequeue(){//Chuy, is there a better way to 'if' this? BR
 	ptr = Dequeue(ptrPCBReadyLow);
 	if (ptr != NULL)
 		return ptr;
-	ptr = ptrPCBReadyLow->queueHead;//NULL process is not dequeued
+	ptr = ptrPCBReadyLow->queueHead;//NULL process is not dequeued // TODO ARE WE SURE? SO THE STATUS WILL BE EXECUTING WHEN IT IS STILL IN THE READY QUEUE.? 
 		return ptr;
 }

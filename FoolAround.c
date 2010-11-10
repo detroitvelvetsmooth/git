@@ -25,13 +25,13 @@ void testContextA()
 }
 
 void testContextB()
-{ 	printf("hello\n");
+{ 	
 	struct PCB* new = ptrPCBList;
 	 	
 	 	while(1) {
 		printf("Hi I'm process B\n");
 		sleep(1);
-	//	context_switch(new);
+		context_switch(new);
   }
 }
 

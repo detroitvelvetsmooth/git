@@ -1,5 +1,6 @@
 #include "Struct.h"
 #include "FoolAround.c"
+#include //the usr processes.
 
 
 /* This method will initialize the processes appropriately by first looping through an initialization table and creating and linking the PCBs
@@ -22,27 +23,27 @@ void (*processProgramCounter[numProcesses])(); //array of function pointers.
 processPID[0] = PIDUserProcessA;
 processPriority[0] = MED_PRIORITY;
 processType[0] = READY;
-processProgramCounter[0] = testContextA; //Need to know the method name of each process.
+processProgramCounter[0] = testContextA; //Need to know the method name of each process. ProcessA
 
 processPID[1] = PIDUserProcessB;
 processPriority[1] = MED_PRIORITY;
 processType[1] = READY;
-processProgramCounter[1] = testContextB;//Need to know the method name of each process.
+processProgramCounter[1] = testContextB;//Need to know the method name of each process. ProcessB
 
 processPID[2] = PIDUserProcessC;
 processPriority[2] = MED_PRIORITY;
 processType[2] = READY;
-processProgramCounter[2] =NULL; //Need to know the method name of each process.
+processProgramCounter[2] =NULL; //Need to know the method name of each process.  ProcessC
 
 processPID[3] = PIDcci;
 processPriority[3] = HIGH_PRIORITY;
 processType[3] = READY;
-processProgramCounter[3] =NULL; //Need to know the method name of each process.
+processProgramCounter[3] =NULL; //Need to know the method name of each process. CCI
 
 processPID[4] = PIDNullProcess;
 processPriority[4] = NULL_PRIORITY;
 processType[4] = READY;
-processProgramCounter[4] =NULL; //Need to know the method name of each process.
+processProgramCounter[4] =NULL; //Need to know the method name of each process. NullProcess
 
 //Now that we can define create a PCB for all the processes and link each new process.
 
@@ -82,7 +83,7 @@ for(i = 1; i < numProcesses; i ++ )
 	(*temporaryPCB).processPriority = processPriority[i];
 
 	(*temporaryPCB).programCounter = processProgramCounter[i];
-	(*temporaryPCB).ptrStack = (char*)malloc(processStackSize); 
+	(*temporaryPCB).ptrStack = ((char*)malloc(processStackSize))+ processStackSize - processStackOffset; 
 
 	(*temporaryPCB).ptrNextPCBList = NULL;
 	(*temporaryPCB).ptrNextPCBQueue = NULL;
@@ -201,14 +202,9 @@ void initializeProcessContext(){
 			}
 			else{
 				
-				printf("This PCB PID: %d\n", ptrCurrentExecuting->PID);
-		
-//			void (*tmp_fn) (); // initialize a function pointer that takes no parameters and returns void			
-				ptrCurrentExecuting->programCounter(); //executes for the first time. 
-				
-//			tmp_fn = (*ptrCurrentExecuting).programCounter;
- //	 		tmp_fn();	 //executes the process for the first time. starting at the program counter location.
-			  printf("Should never make it here\n");
+				printf("This PCB PID: %d\n", ptrCurrentExecuting->PID); //prints the pcb of the process about to be executed.
+				ptrCurrentExecuting->programCounter(); //executes for the first time.
+			  printf("initializeProcessContext: Process failed to execute correctly or never called a context switch\n");
 			
 			}
 

@@ -54,7 +54,7 @@ void ProcessB(){
      do{
         //Receive message and send to process C, then release processor.
         BTemp = receive_message();
-       // status = send_message(PIDUserProcessC, BTemp);
+        status = send_message(PIDUserProcessC, BTemp);
         if (status!=1)
            printf("\n Send_Message failed from ProcessB to ProcessC\n");
         release_processor();
@@ -119,7 +119,7 @@ void ProcessC(){
         status = release_message_env(CEnv);
         if (status != 1)
            printf("\nrelease_message_env failed for Process C. ERROR.\n");
-        release_processor(); //TODO Write the release_processor function.
+        release_processor(); 
      }while(1);
 }
 
@@ -129,9 +129,93 @@ void NullProcess(){
         release_processor();
      }while(1);
 }
+void CCI()
+{
+	int hour, min, sec;
+	int newPri, PID;
+	char tempChar;
+	struct messageEnvelope *temp;
+	temp = request_message_env(); //should we request and release an envelope on every cycle?
+	
+	while(1)
+	{
+	strcpy(temp->messageText, "CCI:"); 
+	send_message((int)(PIDiProcessCRT), temp);
+	temp = receive_message();
+	
+	get_console_chars(temp);
+	temp = receive_message(); //assuming KB iProcess sends evn back to process
+	
+	if(strcmp(temp->messageText, " ")==0)
+	{
+		get_console_chars(temp);
+		temp = receive_message();
+	}
+	else if(strcmp(temp->messageText, "s")==0)
+	{
+		send_message((int)(PIDUserProcessA), temp);
+		release_processor(); 
+	}
+	else if(strcmp(temp->messageText, "ps")==0)
+	{
+		request_process_status(temp);
+		send_console_chars(temp); //we need to figure out where the status info get put into a table format. Here??
+		temp = receive_message();
+	}
+	
+	else if(strcmp(temp->messageText, "cd")==0)
+	{
+		//change flag of wall clock to send time to CRT every second
+	}
+	else if(strcmp(temp->messageText, "ct")==0)
+	{
+		//change flag of wall clock to stop sending time to CRT
+	}
+	else if(temp->messageText[0] == 'c') 
+	{
+		sscanf(temp->messageText, "%c %d:%d:%d", &tempChar, &hour, &min, &sec); //needs to check if correct number of items passed
+		if(hour < 0 || hour >=24 || min < 0 || min >=60 || sec < 0 || sec >= 60)
+		{
+			strcpy(temp->messageText, "Illegal Time Entered");
+			send_console_chars(temp);
+			temp = receive_message();
+		}
+		else
+		{
+			wall_clock(hour,min,sec); //We should make wall clock accept these values 
+		}
+	}
+	else if(strcmp(temp->messageText, "b")==0)
+	{
+		get_trace_buffers(temp);
+		send_console_chars(temp);
+		temp = receive_message();
+	}
+	else if(strcmp(temp->messageText, "t")==0)
+	{
+		terminate();
+	}
+	else 	if(temp->messageText[0] == 'n')
+	{
+		sscanf(temp->messageText, "%c &d &d", &tempChar, &newPri, &PID); //needs to check if correct number of items passed
+		int check = change_priority(newPri, PID);
+		if(check == -1)
+		{
+			strcpy(temp->messageText, "Priority Change Failed");
+			send_console_chars(temp);
+			temp = receive_message();
+		}
+	}
+	else
+	{
+		strcpy(temp->messageText, "Illegal Command");
+		send_console_chars(temp);
+		temp = receive_message();
+	}
+	}
+}
 
-
-
+///////////////////// USER PROCESSES HELPER FUNCTIONS ////////////
 int isEmpty(struct CQueue* tempQ){
     if(tempQ == NULL)
         return -1;
@@ -184,91 +268,6 @@ void CEnqueue(struct CQueue* tempQ, struct messageEnvelope* newEnv){
      }
 }
 
-void CCI()
-{
-	int hour, min, sec;
-	int newPri, PID;
-	char tempChar;
-	struct messageEnvelope *temp;
-	temp = request_message_env(); //should we request and release an envelope on every cycle?
-	
-	while(1)
-	{
-	strcpy(temp->messageText, "CCI:"); 
-	send_message((int)(PIDiProcessCRT), temp);
-	temp = receive_message();
-	
-	get_console_chars(temp);
-	temp = receive_message(); //assuming KB iProcess sends evn back to process
-	
-	if(strcmp(temp->messageText, " ")==0)
-	{
-		get_console_char(temp);
-		temp = receive_message();
-	}
-	elseif(strcmp(temp->messageText, "s")==0)
-	{
-		send_massage((int)(PIDUserProcessA), temp);
-		release_processor(); 
-	}
-	elseif(strcmp(temp->messageText, "ps")==0)
-	{
-		request_process_status(temp);
-		send_console_chars(temp); //we need to figure out where the status info get put into a table format. Here??
-		temp = receive_message();
-	}
-	
-	elseif(strcmp(temp->messageText, "cd")==0)
-	{
-		//change flag of wall clock to send time to CRT every second
-	}
-	elseif(strcmp(temp->messageText, "ct")==0)
-	{
-		//change flag of wall clock to stop sending time to CRT
-	}
-	elseif(temp->messageText[0] == 'c') 
-	{
-		sscanf(temp->messageText, "%c %d:%d:%d", &tempChar, &hour, &min, &sec); //needs to check if correct number of items passed
-		if(hour < 0 || hour >=24 || min < 0 || min >=60 || sec < 0 || sec >= 60)
-		{
-			strcpy(temp->messageText, "Illegal Time Entered");
-			send_console_chars(temp);
-			temp = receive_message();
-		}
-		else
-		{
-			wall_clock(hour,min,sec); //We should make wall clock accept these values 
-		}
-	}
-	elseif(strcmp(temp->messageText, "b")==0)
-	{
-		get_trace_buffer(temp);
-		send_console_chars(temp);
-		temp = receive_message();
-	}
-	elseif(strcmp(temp->messageText, "t")==0)
-	{
-		terminate();
-	}
-	elseif(temp->messageText[0] == 'n')
-	{
-		sscanf(temp->messageText, "%c &d &d", &tempChar, &newPri, &PID); //needs to check if correct number of items passed
-		int check = change_priority(newPri, PID);
-		if(check == -1)
-		{
-			strcpy(temp->messageText, "Priority Change Failed");
-			send_console_chars(temp);
-			temp = receive_message();
-		}
-	}
-	else
-	{
-		strcpy(temp->messageText, "Illegal Command");
-		send_console_chars(temp);
-		temp = receive_message();
-	}
-	}
-}
-	
+
 
 

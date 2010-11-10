@@ -80,7 +80,7 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 	
 	
 		ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
-//	initializeProcessReadyQueue();
+  //	initializeProcessReadyQueue();
 
 //    ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
 //   ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
@@ -92,7 +92,7 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 	 
    	initializeProcessContext();  //Will actually initialize the context of each method.
 
- ptrCurrentExecuting=ptrPCBList; // points to first pcb 
+ ptrCurrentExecuting = ptrPCBList; //When we call release processor/context swith we need to make sure that ptrCurrentExecuting is pointing to the right PCB. 
 
  printf("FirstPCB PID: %d\n", ptrCurrentExecuting->PID);
  longjmp(ptrCurrentExecuting->contextBuffer,1);//WILL JUMP TO THE FIRST EXECUTION.	
