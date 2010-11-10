@@ -1,48 +1,6 @@
-#include <setjmp.h>//where magic happens
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "Struct.h"
-#include "publicProcesses.h"
-
-PCB* ReadyProcessDequeue(){//Chuy, is there a better way to 'if' this?
-	PCB* ptr = NULL;
-	ptr = Dequeue(ptrPCBReadyHigh);
-	if (ptr != NULL)
-		return ptr;
-	ptr = Dequeue(ptrPCBReadyMed);
-	if (ptr != NULL)
-		return ptr;
-	ptr = Dequeue(ptrPCBReadyLow);
-	if (ptr != NULL)
-		return ptr;
-	ptr = ptrPCBReadyLow->queueHead;//NULL process is not dequeued
-		return ptr;
-}
-
-
-void context_switch(jmp_buf* last_PCB, jmp_buf* next_PCB){//what is wrong!?
-	int return_code = setjmp(last_PCB);
-	if(return_code == 0)
-		longjmp(next_PCB,1);//will it work on next_PCB's 1st execution?
-	}
-
-void k_process_switch(){
-	PCB* next_PCB = NULL;
-	PCB* last_PCB = NULL;
-	next_PCB = ReadyProcessDequeue();
-	next_PCB->PCBState = 1;
-	last_PCB = ptrCurrentExecuting;
-	ptrCurrentExecuting = next_PCB;
-	context_switch(last_PCB->contextBuffer, next_PCB->contextBuffer);
-	}
+SORRY I BUTCHERED THIS PAGE BRIAN. EVERYTHING GOT PLACED ONTO KPRIMITIVES.C
 
 	
-
-
-
-
-
 //Below it our over-qualified TA's example of context_switch
 //it may help us to test context initialization
 

@@ -1,12 +1,28 @@
 #include "Struct.h"
 
+
+///////////// AUXILLARY FUNCTIONS PROTOTYPES //////////////////
+
+// THESE ARE DEFINED AT THE BOTTOM OF THE FILE. 
+
+void context_switch(jmp_buf last_PCB, jmp_buf next_PCB);
+void atomic(int on);
+struct PCB * getPCB(int findPID);
+int Enqueue(struct PCB* ptr,struct nodePCB* Q);
+struct PCB* Dequeue(struct nodePCB* Q);
+struct PCB* SearchPCBDequeue(int searchPID, struct nodePCB* Q);
+struct PCB* ReadyProcessDequeue();
+
+///////////// KPRIMITIVES ///////////////////
+
 struct messageEnvelope* k_request_message_env( )
 {
     struct messageEnvelope* temp;
-    
+
     if(ptrMessage == NULL) // No envelopes available
     {
 	  ptrCurrentExecuting->PCBState = BLOCKED_MSG_ALLOCATE;
+
 /* THIS PART IS PROBABLY WRONG AS THE INVOKING PCB WILL NOT BE ON A READY QUEUE
 	  struct PCB* movingPCB;
           if(ptrCurrentExecuting->processPriority == HIGH_PRIORITY)
@@ -26,12 +42,12 @@ struct messageEnvelope* k_request_message_env( )
 	  //k_process_switch();
     }
     //temp = (struct messageEnvelope *)malloc(sizeof(struct messageEnvelope ));
-    
+
     temp = ptrMessage;
-    
+
     if(temp->ptrNextMessage==NULL)
           ptrMessageTail= NULL;
-    
+
     ptrMessage = ptrMessage->ptrNextMessage;
     return temp;
 }
@@ -40,7 +56,7 @@ struct messageEnvelope* k_request_message_env( )
 int  k_release_message_env ( struct messageEnvelope* temp )
 {
     if(temp == NULL) //No envelope
-         return -1; 
+         return -1;
     if(ptrMessage == NULL) //Empty Message linked list
     {
          ptrMessage = temp;
@@ -49,9 +65,9 @@ int  k_release_message_env ( struct messageEnvelope* temp )
     }
     else //Normal Case
     {
-         ptrMessageTail->ptrNextMessage = temp; 
+         ptrMessageTail->ptrNextMessage = temp;
          ptrMessageTail = temp;
-         temp->ptrNextMessage = NULL;     
+         temp->ptrNextMessage = NULL;
     }
     if(ptrPCBBlockedAllocate->queueHead != NULL) //Processes are blocked on allocate
     {
@@ -64,34 +80,34 @@ int  k_release_message_env ( struct messageEnvelope* temp )
          int result;
          if(movingPCB->processPriority == HIGH_PRIORITY)  //Enqueue the PCB to its proper ready Q.
              result = Enqueue(movingPCB, ptrPCBReadyHigh);
-         elseif(movingPCB->processPriority == MED_PRIORITY)
+         else if(movingPCB->processPriority == MED_PRIORITY)
              result = Enqueue(movingPCB, ptrPCBReadyMed);
-         elseif(movingPCB->processPriority == LOW_PRIORITY)
+         else if(movingPCB->processPriority == LOW_PRIORITY)
              result = Enqueue(movingPCB, ptrPCBReadyLow);
          else
-             result = Enqueue(movingPCB, ptrPCBReadyNull); 
+             result = Enqueue(movingPCB, ptrPCBReadyNull);
          if(result != 1)
          {
              printf("Inside k_release_message_env: The PCB that was intended to be sent to ready was not properly enqueued. ERROR.\n");
-         }        
+         }
     }
     return 1;
 }
 
 int k_send_message( int dest_process_id, struct messageEnvelope* temp )
-{	
+{
 
 	if(temp==NULL) //No Envelope Passed.
 	{ printf("k_send_message: No envelope passed\n");
-		return -1; 
+		return -1;
 	}
-	
+
 	temp->PIDSender = ptrCurrentExecuting->PID;
 	temp->PIDReceiver = dest_process_id;
-		
+
 	struct PCB *receiver;
         receiver = getPCB(dest_process_id);
-        
+
         if(receiver->ptrMessageInboxHead == NULL) //Empty Inbox
         {
             receiver->ptrMessageInboxHead = temp;
@@ -100,50 +116,67 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp )
         }
         else
         {
-            receiver->ptrMessageInboxTail->ptrNextMessage = temp; 
+            receiver->ptrMessageInboxTail->ptrNextMessage = temp;
             receiver->ptrMessageInboxTail = temp;
             temp->ptrNextMessage = NULL;
         }
         struct PCB* tempPCB;
-        if(receiver->PCBState == BLOCKED_MSG_RECEIVE || (receiver->PCBState == BLOCKED_SLEEPING && temp->messageType == MSGTYPEWAKEUP){
+        if(receiver->PCBState == BLOCKED_MSG_RECEIVE || (receiver->PCBState == BLOCKED_SLEEPING && temp->messageType == MSGTYPEWAKEUP)){
         //Note: BLOCKED_SLEEPING and BLOCKED_MSG_RECEIVE both reside in the ptrPCBBlockedReceive Q)
             tempPCB = SearchPCBDequeue(receiver->PID, ptrPCBBlockedReceive);
             if (tempPCB == NULL){
                 printf("Inside k_send_message: The receiving process is in BLOCKED_MSG_RECEIVE state but not found on Q. ERROR.\n");
             }
-            elseif(tempPCB != receiver){
+            else if(tempPCB != receiver){
                 printf("Inside k_send_message: The dequeued PCB from the Blocked on Receive Q is not = to the receiving PCB. ERROR. \n");
             }
             else{
+            
+            tempPCB->PCBState = READY;
+            
                 int result;
                 if(tempPCB->processPriority == HIGH_PRIORITY)
                     result = Enqueue(tempPCB, ptrPCBReadyHigh);
-                elseif(temp->processPriority == MED_PRIORITY)
+                else if(tempPCB->processPriority == MED_PRIORITY)
                     result = Enqueue(tempPCB, ptrPCBReadyMed);
-                elseif(temp->processPriority == LOW_PRIORITY)
+                else if(tempPCB->processPriority == LOW_PRIORITY)
                     result = Enqueue(tempPCB, ptrPCBReadyLow);
                 else
-                    result = Enqueue(tempPCB, ptrPCBReadyNULL);
+                    result = Enqueue(tempPCB, ptrPCBReadyNull);
                 if(result != 1){
                     printf("Inside k_send_message: The Enqueue function on the receiving PCB to its ready Q did not return 1. ERROR. \n");
                 }
             }
-        }       
-            
+        }
+
         /*
 		store the sender, receiver, and time information of env into trace struct
 	*/
 	return 0;
 }
 
+void k_process_switch(){
+
+ struct	PCB* next_PCB = NULL;
+ struct	PCB* last_PCB = NULL;
+
+	next_PCB = ReadyProcessDequeue();
+	next_PCB->PCBState = EXECUTING;
+	last_PCB = ptrCurrentExecuting;
+	ptrCurrentExecuting = next_PCB;
+
+	context_switch(last_PCB->contextBuffer, next_PCB->contextBuffer);
+	}
+
 struct messageEnvelope* k_receive_message( )
 {
    struct messageEnvelope *temp;
-   if(ptrCurrentExecuting->ptrInboxMessageHead == NULL)
+   if(ptrCurrentExecuting->ptrMessageInboxHead == NULL)
    {
        if(ptrCurrentExecuting->PCBState == IPROCESS) //Iprocesses don't block
            return NULL;
        ptrCurrentExecuting->PCBState = BLOCKED_MSG_RECEIVE; //Change state
+
 /* I DON'T BELIEVE THIS IS NECESSARY AS THE INVOKING PROCESS WON'T BE ON A READY Q
        struct PCB* movingPCB;
        if(ptrCurrentExecuting->processPriority == HIGH_PRIORITY)
@@ -160,27 +193,23 @@ struct messageEnvelope* k_receive_message( )
        int result = Enqueue(ptrCurrentExecuting, ptrPCBBlockedReceive);
        if (result != 1)
            printf("Inside k_receive_message_env: The invoking PCB is meant to be blocked. The Enqueue function was unable to enqueue the PCB to the Blocked on Receive Q.\n");
-       //Call Process_switch();
+       k_process_switch();//Call Process_switch();
    }
-		
-    //temp = (stuct messageEnvelope*)malloc(sizeof( struct messageEnvelope ));
-    
+
+   
     if(ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage==NULL) //Inbox is size 1
-    {
-    	ptrCurrentExecuting->ptrMessageInboxTail = NULL;
-    }
-    
-    //
+     	ptrCurrentExecuting->ptrMessageInboxTail = NULL;
+     
     temp = ptrCurrentExecuting->ptrMessageInboxHead;
     ptrCurrentExecuting->ptrMessageInboxHead = ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage;
     return temp;
-    
+
    	//store the sender, receiver, and time information of env into trace struct
-		
+
 }
 
 int  k_get_console_chars( struct messageEnvelope * temp )
-{		
+{
         if(temp == NULL)
             return -1;
         /*
@@ -202,58 +231,13 @@ int  k_send_console_chars(struct messageEnvelope * temp )
 		return 0;
 }
 
-void atomic(int on) {
-    static sigset_t oldmask;
-    sigset_t newmask;
-    if (on) {
-       atomic_count++;
-       if (atomic_count == 1) { //Check to see if atomic isn't already on
-          sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
-          sigaddset(&newmask, 14); //the alarm signal
-          sigaddset(&newmask, 2); // the CNTRL-C
-          sigaddset(&newmask, SIGUSR1);
-          sigaddset(&newmask, SIGUSR2);
-          sigprocmask(SIG_BLOCK, &newmask, &oldmask); //Oldmask saves the signals being blocked
-       }
-    } 
-    else {
-         atomic_count--;
-         if (atomic_count == 0) { //Check to see if atomic can be turned off
-            sigprocmask(SIG_SETMASK, &oldmask, NULL);
-         }
-    }
-}
-
-struct PCB * getPCB(int findPID)
-{
-    if(ptrPCBList->PID == findPID)
-            return ptrPCBList;
-            
-    struct PCB *temp;
-   
-    temp = ptrPCBList;
-    int done =0;
-    while(done ==0)
-    {
-        temp = temp->ptrNextPCBList;
-        if(temp->PID == findPID)
-            done = 1;
-    }
-    return temp;
-}
-
-
-/////////////////////////////////////// NEW. 
-void  k_process_switch(){} //TO WRITE.
-
 int  k_release_processor( )
 {
-	ptrCurrentExecuting->PCBState = 1; //Ready
+	ptrCurrentExecuting->PCBState = READY; //Ready
 	//enqueue current process to ready queue
 	k_process_switch();
 	return 1;
 }
-
 
 int  k_request_process_status(struct messageEnvelope * temp )
 {
@@ -285,23 +269,23 @@ int  k_request_process_status(struct messageEnvelope * temp )
 }
 
 int  k_change_priority(int new_priority, int targetID){
-    if (targetID != PIDUserProcessA || targetID != PIDUserProcessB || targetID != PIDUserProcessC 
-		|| targetID != PIDcci || targetID != PIDNullProcess || targetID != PIDiProcessKeyboard 
-		|| targetID != PIDiProcessCRT || targetID != PIDiProcessTimer || new_priority != HIGH_PRIORITY 
+    if (targetID != PIDUserProcessA || targetID != PIDUserProcessB || targetID != PIDUserProcessC
+		|| targetID != PIDcci || targetID != PIDNullProcess || targetID != PIDiProcessKeyboard
+		|| targetID != PIDiProcessCRT || targetID != PIDiProcessTimer || new_priority != HIGH_PRIORITY
 		||new_priority != MED_PRIORITY || new_priority != LOW_PRIORITY || new_priority != NULL_PRIORITY)
 		return -1;
     struct PCB *temp;
-    temp = getPCB(targetID);	
+    temp = getPCB(targetID);
     //Since PCB is in a ready Q it must be changed immediately.
     if(temp->PCBState == READY){
 	  struct PCB* movingPCB;
           if(temp->processPriority == HIGH_PRIORITY)
               movingPCB = SearchPCBDequeue(targetID, ptrPCBReadyHigh);
-          elseif(temp->processPriority == MED_PRIORITY)
+          else if(temp->processPriority == MED_PRIORITY)
               movingPCB = SearchPCBDequeue(targetID, ptrPCBReadyMed);
-          elseif(temp->processPriority == LOW_PRIORITY)
+          else if(temp->processPriority == LOW_PRIORITY)
               movingPCB = SearchPCBDequeue(targetID, ptrPCBReadyLow);
-          else(temp->processPriority == NULL_PRIORITY)
+          else if(temp->processPriority == NULL_PRIORITY)
               movingPCB = SearchPCBDequeue(targetID, ptrPCBReadyNull);
           if(movingPCB != temp){
               printf("Inside k_change_priority: The proper PCB was not returned by the SearchPCBDequeue function. ERROR.\n");
@@ -309,15 +293,15 @@ int  k_change_priority(int new_priority, int targetID){
           int result;
           if(new_priority == HIGH_PRIORITY)
               result = Enqueue(movingPCB, ptrPCBReadyHigh);
-          elseif(new_priority == MED_PRIORITY)
+          else if(new_priority == MED_PRIORITY)
               result = Enqueue(movingPCB, ptrPCBReadyMed);
-          elseif(new_priority == LOW_PRIORITY)
+          else if(new_priority == LOW_PRIORITY)
               result = Enqueue(movingPCB, ptrPCBReadyLow);
           else
               result = Enqueue(movingPCB, ptrPCBReadyNull);
           if(result != 1){
               printf("Inside k_change_priority: The PCB was not properly enqueued to its ready Q. ERROR./n");
-          }     
+          }
     }
     temp->processPriority = new_priority;
     return 1;
@@ -341,7 +325,56 @@ int k_terminate()
     return 1;
 }
 
-//////////////// PRIMITIVE SUPPORT FUNCTIONS /////////////////////////
+
+/////////////PRIMITIVE HELPER FUNCTIONS //////////////////////
+
+void context_switch(jmp_buf last_PCB, jmp_buf next_PCB){
+
+	int return_code = setjmp(last_PCB);
+
+	if(return_code == 0)
+		longjmp(next_PCB,1);//will it work on next_PCB's 1st execution?
+	}
+
+void atomic(int on) {
+    static sigset_t oldmask;
+    sigset_t newmask;
+    if (on) {
+       atomic_count++;
+       if (atomic_count == 1) { //Check to see if atomic isn't already on
+          sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
+          sigaddset(&newmask, 14); //the alarm signal
+          sigaddset(&newmask, 2); // the CNTRL-C
+          sigaddset(&newmask, SIGUSR1);
+          sigaddset(&newmask, SIGUSR2);
+          sigprocmask(SIG_BLOCK, &newmask, &oldmask); //Oldmask saves the signals being blocked
+       }
+    }
+    else {
+         atomic_count--;
+         if (atomic_count == 0) { //Check to see if atomic can be turned off
+            sigprocmask(SIG_SETMASK, &oldmask, NULL);
+         }
+    }
+}
+
+struct PCB * getPCB(int findPID)
+{
+    if(ptrPCBList->PID == findPID)
+            return ptrPCBList;
+
+    struct PCB *temp;
+
+    temp = ptrPCBList;
+    int done =0;
+    while(done ==0)
+    {
+        temp = temp->ptrNextPCBList;
+        if(temp->PID == findPID)
+            done = 1;
+    }
+    return temp;
+}
 
 int Enqueue(struct PCB* ptr,struct nodePCB* Q){//general enqueue function
     if(Q == NULL)
@@ -363,16 +396,16 @@ struct PCB* Dequeue(struct nodePCB* Q){
 	if(Q->queueHead == NULL)//Queue empty case
 		return NULL;
 
-	
+
 	struct PCB* returnPCB;
 	returnPCB = Q->queueHead;
 
 	if(Q->queueHead == Q->queueTail)
         Q->queueTail = NULL;
-        
+
     Q->queueHead = returnPCB->ptrNextPCBQueue;
-    returnPCB->ptrNextPCBQueue = NULL;    
-    
+    returnPCB->ptrNextPCBQueue = NULL;
+
 	return returnPCB;
 }
 
@@ -404,4 +437,21 @@ struct PCB* SearchPCBDequeue(int searchPID, struct nodePCB* Q){
 			temp = temp->ptrNextPCBQueue;
 			}
 	return NULL;//if element is not in Queue.
+}
+
+struct PCB* ReadyProcessDequeue(){//Chuy, is there a better way to 'if' this? BRIAN: No.
+
+	struct PCB* ptr = NULL;
+
+	ptr = Dequeue(ptrPCBReadyHigh);
+	if (ptr != NULL)
+		return ptr;
+	ptr = Dequeue(ptrPCBReadyMed);
+	if (ptr != NULL)
+		return ptr;
+	ptr = Dequeue(ptrPCBReadyLow);
+	if (ptr != NULL)
+		return ptr;
+	ptr = ptrPCBReadyLow->queueHead;//NULL process is not dequeued
+		return ptr;
 }

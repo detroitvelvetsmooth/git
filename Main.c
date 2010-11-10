@@ -55,10 +55,6 @@ ptrPCBReadyHigh = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 
 //////////// BLOCKED ON X QUEUES ////////////
 
-ptrPCBTiming = (struct nodePCB*) malloc(sizeof(struct nodePCB));
-(*ptrPCBTiming).queueHead= NULL;
-(*ptrPCBTiming).queueTail= NULL;
-
 ptrPCBBlockedReceive = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBBlockedReceive).queueHead= NULL;
 (*ptrPCBBlockedReceive).queueTail= NULL; //pointer to the blocked on message receive queue.
@@ -94,9 +90,9 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 //  printf("Helper Process Forked\n");
 	  
 	 
-   initializeProcessContext(ptrPCBList);  //Will actually initialize the context of each method.
+   	initializeProcessContext(ptrPCBList);  //Will actually initialize the context of each method.
  
-   k_release_processor(); //calls the dispatcher which would schedule the highest process to run.  In theory, the OS should never come back after this call.
+	   k_release_processor(); //calls the dispatcher which would schedule the highest process to run.  In theory, the OS should never come back after this call.
 
 
 	while(1){} //TODO THIS WHILE LOOP SHOULD NEVER BE EXECUTED UNDER PROPER CONDITIONS. 
@@ -183,14 +179,10 @@ int priority = -1;
 		}
 
 	}
-
-
 	ptrPCBListTail = ptrPCBTemporary; // we are going to return ptrPCBListTail at the end so we'll update it at every step (this could be more elegant)
 	ptrPCBTemporary  = (*ptrPCBTemporary).ptrNextPCBList ; //shuffles the temporary pointer down the list.
     }
     
-   
-
 }// we don't need to return the updated tail pointer since this method is within the the same file.
 
 void cleanup(){     //will cleanup the code if a signal is received.
@@ -244,5 +236,4 @@ printf("\nHousekeeping...Cleanup\n");
     exit(0); // ENDS THE EXECUTION OF THE RTX.
 
 }
-
 
