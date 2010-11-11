@@ -12,6 +12,10 @@ void wallClock(){
 
 void iProcessAlarm(){ //THIS FUNCTION IS IN A NON WORKING STATE . TODO
 /*
+  struct PCB * temp = ptrCurrentExecuting; 
+	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
+	
+	
 	absoluteTime++;
 	relativeTime++;
 	
@@ -39,26 +43,40 @@ void iProcessAlarm(){ //THIS FUNCTION IS IN A NON WORKING STATE . TODO
 	 if(relativeTime%10 ==0) //only displays the wall clock if the CCI demanded it
 	 { wallClock();
 	 }
+	 
+	ptrCurrentExecuting = temp;
+	
 */
 }
 
 void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 
-	if((*CRTSharedMemPointer).completedFlag == 1){//Indicates CRT has completed copying. Means empty buffer.
+	struct PCB * temp = ptrCurrentExecuting; 
+	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
+	
+	if((*CRTSharedMemPointer).completedFlag == 0){//Indicates CRT has completed copying. Means empty buffer.
 		struct messageEnvelope* env = NULL;
+	
 		env = k_receive_message();//primitive name
+	
+		printf("iProcessCRT: got Here %s", env->messageText);
 	
 		if (env != NULL){ //which it should always be the case
 		    
 		    strcpy((*CRTSharedMemPointer).data, env->messageText);//Copies the contents of env->data to buffer
 	      env->messageType = MSGTYPEACK;
-	      (*CRTSharedMemPointer).completedFlag = 0; //Indicate to UNIXCRT that buffer is loaded
+	      (*CRTSharedMemPointer).completedFlag = 1; //Indicate to UNIXCRT that buffer is loaded
 	      k_send_message(env->PIDSender,env);
 	  }
   }
+  
+  ptrCurrentExecuting = temp;
 }
 
 void iProcessKeyboard(){
+
+	struct PCB * temp = ptrCurrentExecuting; 
+	ptrCurrentExecuting = getPCB(PIDiProcessKeyboard);
 	
 	struct messageEnvelope* env = NULL;
 	env = k_receive_message();
@@ -78,7 +96,7 @@ void iProcessKeyboard(){
 			if(env!=NULL)
 			k_release_message_env(env);//if mem not ready, ignore env; will never happen (SINCE COMPUTERS ARE FAAAAST)
 	}
-	
+	  ptrCurrentExecuting = temp;
 }
 
 /*int TimingListEnqueue(struct messageEnvelope* env){

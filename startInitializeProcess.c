@@ -22,17 +22,17 @@ void (*processProgramCounter[numProcesses])(); //array of function pointers.
 // iProcess will have no priority associated with them or program counter since they are executed on demand. and are just functions.
 
 processPID[0] = PIDUserProcessA;
-processPriority[0] = MED_PRIORITY;
+processPriority[0] = LOW_PRIORITY;
 processType[0] = READY;
 processProgramCounter[0] = ProcessA; 
 
 processPID[1] = PIDUserProcessB;
-processPriority[1] = MED_PRIORITY;
+processPriority[1] = LOW_PRIORITY;
 processType[1] = READY;
 processProgramCounter[1] =ProcessB;
 
 processPID[2] = PIDUserProcessC;
-processPriority[2] = MED_PRIORITY;
+processPriority[2] = LOW_PRIORITY;
 processType[2] = READY;
 processProgramCounter[2] =ProcessC;
 
@@ -42,7 +42,7 @@ processType[3] = READY;
 processProgramCounter[3] =CCI;
 
 processPID[4] = PIDNullProcess;
-processPriority[4] = NULL_PRIORITY;
+processPriority[4] = MED_PRIORITY; //TODO CHANGE BACK TO NULL PROCESS
 processType[4] = READY;
 processProgramCounter[4] =NullProcess; 
 
@@ -178,7 +178,6 @@ void initializeProcessContext(){
 
 	while(ptrCurrentExecuting!=NULL){
 
-	printf("Entered initialize loop\n");
 
 		if((*ptrCurrentExecuting).PCBState!= IPROCESS) //IPROCESSES WILL HAVE NO CONTEXT AND WILL BE JUST PCB.s
 		{

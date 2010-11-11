@@ -19,7 +19,8 @@ struct messageEnvelope * messageHead = temporaryPointer;
 (*temporaryPointer).ptrNextMessage = NULL;
 (*temporaryPointer).PIDSender =-1; 
 (*temporaryPointer).PIDReceiver = -1;
-(*temporaryPointer).messageType = -1;
+(*temporaryPointer).sleepTicks = -1;
+(*temporaryPointer).messageType = 99;
 // For the messageTimeStamp and actual message, they are arrays of characters which will be defined when first used. 
  // we assign values of -1 for the integers since 0,1,2,3, could be potential values.
 
@@ -34,7 +35,7 @@ for (i=0; i<totalMessages-1; i ++)
 	(*temporaryPointer).PIDSender =-1;
 	(*temporaryPointer).PIDReceiver = -1;
 	(*temporaryPointer).sleepTicks = -1;
-	(*temporaryPointer).messageType = -1;
+	(*temporaryPointer).messageType = 99;
 
 }
 

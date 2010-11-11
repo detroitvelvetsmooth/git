@@ -16,6 +16,7 @@ int isCQEmpty();
 
 
 void ProcessA(){
+		printf("Entered Process A\n");
      struct messageEnvelope* start;
      start = receive_message();
      //Check for start message sent by CCI
@@ -43,6 +44,7 @@ void ProcessA(){
 }
 
 void ProcessB(){
+	printf("Entered Process B\n");
      struct messageEnvelope* BTemp;
      int status;
      //Start infinte loop
@@ -59,6 +61,8 @@ void ProcessB(){
 
 void ProcessC(){
      //TODO: Perform Initialization of local message queue
+     
+     printf("Entered Process C\n");
      ProcessCQHead = NULL;
      ProcessCQTail = NULL;
      struct messageEnvelope* CEnv;
@@ -113,6 +117,8 @@ void ProcessC(){
 void NullProcess(){
 //Infinite Loop
      do{
+     		//printf("Bamg/!!!!\n");
+     		sleep(2);
         release_processor();
      }while(1);
 }
@@ -123,21 +129,26 @@ void CCI()
 	char tempChar;
 	struct messageEnvelope *temp;
 	temp = request_message_env(); //should we request and release an envelope on every cycle?
+	temp ->PIDSender = PIDcci;
+	temp ->messageType = (int)MSGTYPEDATA;
 	
 	while(1)
 	{
-	if(temp->messageType != MSGCONSOLEINPUT)
-		printf("This was not a command message");
-	else
-	{
+	
 		strcpy(temp->messageText, "CCI:\0"); 
-		send_message((int)(PIDiProcessCRT), temp);
+		send_console_chars(temp);
+		
 		temp = receive_message();
+		printf("Our Message back from CRT: %s\n", temp->messageText);
 	
 		get_console_chars(temp);
 		temp = receive_message(); //assuming KB iProcess sends evn back to process
+		printf("Our Message back from KBD: %s\n", temp->messageText);
+		
+	 if(temp->messageType != MSGCONSOLEINPUT)
+		printf("This was not a command message");
 	
-		if(strcmp(temp->messageText, "test\0")==0) //REMOVE THE 'TEST'
+	else if(strcmp(temp->messageText, "test")==0) //REMOVE THE 'TEST'
 		{
 			strcpy(temp->messageText, "Hello\0"); //TODO just for testing...
 			send_console_chars(temp);
@@ -206,7 +217,7 @@ void CCI()
 			send_console_chars(temp);
 			temp = receive_message();
 		}
-	}
+	
 	//release_processor(); TODO UNCOMMENT THIS LINE. 
 	}
 }

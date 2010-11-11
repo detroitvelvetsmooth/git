@@ -93,11 +93,33 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 	 
    	initializeProcessContext();  //Will actually initialize the context of each method.
    	printf("Process for each context is initialized\n");
-
+   	
+   	initializeProcessReadyQueue();
+   	printf("Placed all PCBs in the Ready Queues\n");
+   	
+  /* 	struct PCB* temp = ptrPCBList; 
+   	
+   	while(temp !=NULL)
+   	{
+   		printf("PID: %d\n", temp->PID); 
+   		temp = temp->ptrNextPCBList;
+   	
+   	}
+   	
+	 temp =	ptrPCBReadyMed->queueHead;
+	 while(temp !=NULL)
+   	{
+   		printf("PID Meds: %d\n", temp->PID); 
+   		temp = temp->ptrNextPCBQueue;
+   	
+   	}
+*/
  //	ptrCurrentExecuting = ptrPCBList; //When we call release processor/context swith we need to make sure that ptrCurrentExecuting is pointing to the right PCB. 
 		
 	 //because we call initializeProcessContext(), ptrCurrentExecuting will point to the CCI (highest priority process)
+	 
 	 printf("First To PCB Execute  PID: %d\n", ptrCurrentExecuting->PID);
+	 
 	 longjmp(ptrCurrentExecuting->contextBuffer,1);//WILL JUMP TO THE FIRST EXECUTION.	
 	 printf("In Main: Made the jump to first process and came back: FATAL ERROR - cleaning up\n");
 	
@@ -123,7 +145,7 @@ int priority = -1;
 		if(priority == HIGH_PRIORITY){
 
 			//EXECUTES BRIAN'S ENQUEUE.
-						
+			/*			
 			if(ptrPCBReadyHigh->queueHead==NULL){ //MEANS IT IS THE FIRST ONE TO JOIN THE QUEUE.
 			ptrPCBReadyHigh->queueHead = ptrPCBTemporary; //ptrPCBTemporary would be pointing to a pcb of high priority
 			ptrPCBReadyHigh->queueTail = ptrPCBTemporary ; // we wish to update the tail as well.
@@ -134,7 +156,10 @@ int priority = -1;
 			ptrPCBReadyHigh->queueTail->ptrNextPCBQueue = ptrPCBTemporary;  // adds it to pointer of the PCB
 			ptrPCBReadyHigh->queueTail = ptrPCBTemporary;   // updates the tail.
 			}
+			*/
+			//SINCE THERE IS ONLY ONE HIGH PRIORITY FOR THE MOMENT, THE CCI DOES NOT GET PLACED IN PRIORITY QUEUE AND SIMPLY POINTS THE PTRCURRENTEXECUTING TO THE PCB.
 			ptrCurrentExecuting = ptrPCBTemporary; // updates ptrCurrentExecuting to point to the last pcb on the ready queue. 
+
 
    }
    else if(priority == MED_PRIORITY){
@@ -143,11 +168,14 @@ int priority = -1;
 			if(ptrPCBReadyMed->queueHead==NULL){
 			ptrPCBReadyMed->queueHead = ptrPCBTemporary;
 			ptrPCBReadyMed->queueTail = ptrPCBTemporary ;
+			
+			ptrPCBTemporary -> ptrNextPCBQueue = NULL;
 			}
 			else{
 
 			ptrPCBReadyMed->queueTail->ptrNextPCBQueue  = ptrPCBTemporary;
 			ptrPCBReadyMed->queueTail = ptrPCBTemporary;
+			ptrPCBTemporary -> ptrNextPCBQueue = NULL;
 			}
         }
 	else if(priority==LOW_PRIORITY){
@@ -156,11 +184,13 @@ int priority = -1;
 			if(ptrPCBReadyLow->queueHead==NULL){
 			ptrPCBReadyLow->queueHead = ptrPCBTemporary;
 			ptrPCBReadyLow->queueTail = ptrPCBTemporary ;
+			ptrPCBTemporary -> ptrNextPCBQueue = NULL;
 			}
 			else{
 
 			ptrPCBReadyLow->queueTail->ptrNextPCBQueue  = ptrPCBTemporary;
 			ptrPCBReadyLow->queueTail = ptrPCBTemporary;
+			ptrPCBTemporary -> ptrNextPCBQueue = NULL;
 			}
 
   }
@@ -170,11 +200,13 @@ int priority = -1;
 			if(ptrPCBReadyNull->queueHead==NULL){
 			ptrPCBReadyNull->queueHead = ptrPCBTemporary;
 			ptrPCBReadyNull->queueTail = ptrPCBTemporary ;
+			ptrPCBTemporary -> ptrNextPCBQueue = NULL;
 			}
 			else{
 
 			ptrPCBReadyNull->queueTail->ptrNextPCBQueue  = ptrPCBTemporary;
 			ptrPCBReadyNull->queueTail = ptrPCBTemporary;
+			ptrPCBTemporary -> ptrNextPCBQueue = NULL;
 			}
 
 		}
