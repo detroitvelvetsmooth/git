@@ -38,6 +38,7 @@ int main (int argc, char * argv[]){
 			usleep(500);
                 strcpy(output_text, output_mem_p->data);
 		printf("UNIXcrt says: %s\n", output_text);
+		fflush(stdout); //FLUSHES TO THE SCREEN.
 		output_mem_p->completedFlag = 0;
 		output_mem_p->bufferLength = 0;
 		//kill(parent_id, SIGUSR1);

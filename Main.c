@@ -73,29 +73,20 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 	
 		
 		signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
-		printf("Signals Associated\n");
+	    ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
 	
-  //	ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
-	//	printf("Ualarm Set\n");
-	
-	
-		ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
-  	initializeProcessReadyQueue();
-  	printf("Initialized Process PCBs and Set them in their Ready Queue\n");
+    	ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
+  	    initializeProcessReadyQueue();
 
-    ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
-    ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
-    printf("Message Envelopes Created and Linked\n");
-		 
-  	forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
-    printf("Helper Process Forked\n");
-	  
-	 
-   	initializeProcessContext();  //Will actually initialize the context of each method.
-   	printf("Process for each context is initialized\n");
+       ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
+       ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
+       
+       forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
+   
+       initializeProcessContext();  //Will actually initialize the context of each method.
    	
-   	initializeProcessReadyQueue();
-   	printf("Placed all PCBs in the Ready Queues\n");
+   	   initializeProcessReadyQueue();
+
    	
   /* 	struct PCB* temp = ptrPCBList; 
    	
@@ -118,7 +109,7 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 		
 	 //because we call initializeProcessContext(), ptrCurrentExecuting will point to the CCI (highest priority process)
 	 
-	 printf("First To PCB Execute  PID: %d\n", ptrCurrentExecuting->PID);
+	 printf("...First PCB Execute  PID: %s\n", debugProcessName(ptrCurrentExecuting->PID));
 	 
 	 longjmp(ptrCurrentExecuting->contextBuffer,1);//WILL JUMP TO THE FIRST EXECUTION.	
 	 printf("In Main: Made the jump to first process and came back: FATAL ERROR - cleaning up\n");
@@ -274,5 +265,58 @@ printf("\nHousekeeping...Cleanup\n");
     printf("\nWill Exit RTX NOW.\n");
     exit(0); // ENDS THE EXECUTION OF THE RTX.
 
+}
+
+char* debugProcessName(int PID)
+{
+     
+     if(PID == PIDUserProcessA)
+     strcpy(processName, "ProcessA\0");
+     
+    else if(PID == PIDUserProcessB)
+     strcpy(processName, "ProcessB\0");
+     
+     else if(PID == PIDUserProcessC)
+     strcpy(processName, "ProcessC\0");
+     
+     else if(PID == PIDcci)
+     strcpy(processName, "CCI\0");
+     
+     else if(PID == PIDNullProcess)
+     strcpy(processName, "NullProcess\0");
+     
+     else if(PID == PIDiProcessKeyboard)
+     strcpy(processName, "Keyboard iProcess \0");
+     
+     else if(PID == PIDiProcessCRT)
+     strcpy(processName, "CRT iProcess\0");
+     
+     else if(PID == PIDiProcessTimer)
+     strcpy(processName, "Timer iProcess\0");
+
+     return processName;
+}
+
+char* debugMessageType(int Type)
+{
+     if(Type == MSGTYPEDATA)
+     strcpy(msg, "MSGTYPEDATA\0");
+     
+    else if(Type == MSGTYPESLEEP)
+     strcpy(msg, "MSGTYPESLEEP\0");
+     
+     else if(Type == MSGTYPEACK)
+     strcpy(msg, "MSGTYPEACK\0");
+     
+     else if(Type == MSGTYPEWAKEUP)
+     strcpy(msg, "MSGTYPEWAKEUP\0");
+     
+     else if(Type == MSGCONSOLEINPUT)
+     strcpy(msg, "MSGCONSOLEINPUT\0");
+     
+     else if(Type == MSGBLANK)
+     strcpy(msg, "MSGBLANK\0");
+     
+     return msg;
 }
 

@@ -71,7 +71,7 @@ void ProcessC(){
      //Start infinite loop.
      do{
         //Check local queue for waiting messages. Dequeue a waiting message, otherwise receive message.
-        if(isCQEmpty()==0) 
+        if(isCQEmpty()==1) 
             CEnv = receive_message();
         else
             CEnv = CDequeue();
@@ -117,9 +117,9 @@ void ProcessC(){
 void NullProcess(){
 //Infinite Loop
      do{
-     		//printf("Bamg/!!!!\n");
+     	//	printf("....");
      		sleep(2);
-        release_processor();
+           release_processor();
      }while(1);
 }
 void CCI()
@@ -138,12 +138,12 @@ void CCI()
 		strcpy(temp->messageText, "CCI:\0"); 
 		send_console_chars(temp);
 		
-		temp = receive_message();
-		printf("Our Message back from CRT: %s\n", temp->messageText);
+		temp = receive_message(); //GETS THE MESSAGE BACK FROM THE CRT. 
+		printf("CCI: Our Message back from CRT: %s\n", temp->messageText);
 	
 		get_console_chars(temp);
-		temp = receive_message(); //assuming KB iProcess sends evn back to process
-		printf("Our Message back from KBD: %s\n", temp->messageText);
+		temp = receive_message(); //assuming KB iProcess sends env    back to process //GETS THE MESSAGE BACK FROM THE KEYBOARD IPROCESS.
+		printf("CCI: Our Message back from KBD: %s\n", temp->messageText);
 		
 	 if(temp->messageType != MSGCONSOLEINPUT)
 		printf("This was not a command message");
@@ -152,9 +152,8 @@ void CCI()
 		{
 			strcpy(temp->messageText, "Hello\0"); //TODO just for testing...
 			send_console_chars(temp);
+			printf("sent the message, now waiting for it receiving/n");
 			temp = receive_message();
-			//get_console_chars(temp);
-			//temp = receive_message();
 		}
 		else if(strcmp(temp->messageText, "s\0")==0)
 		{

@@ -21,11 +21,10 @@ void k_process_switch(){
 
  struct	PCB* next_PCB = ReadyProcessDequeue(); //finds the next pcb to execute with the highest priority.
 	next_PCB->PCBState = EXECUTING;
-	printf("Switching To: %d\n", next_PCB->PID);
+//	printf("k_process_switch: Switching To: %s\n", debugProcessName(next_PCB->PID));
 	//ptrCurrentExecuting = next_PCB; // CONTEXT SWITCH ONLY WORKS WHEN WE PASS IN PTRCURRENTEXECUTING BECAUSE THATS HOW THE CONTEXT WAS INITIALIZED.
-				
-	//if(ptrCurrentExecuting!=next_PCB)														// SINCE PTRCURRENTEXECUTING IS A GLOBAL PARAMETER WE DON'T NEED TO PASS IT IN. HOWEVER WE MUST MAKE SURE THAT IT IS POINTING TO WHAT WE WANT TO EXECUTE.
-	context_switch(next_PCB);
+																	
+	context_switch(next_PCB);// SINCE PTRCURRENTEXECUTING IS A GLOBAL PARAMETER WE DON'T NEED TO PASS IT IN. HOWEVER WE MUST MAKE SURE THAT IT IS POINTING TO WHAT WE WANT TO EXECUTE.
 }
 	
 struct messageEnvelope* k_request_message_env( ){
@@ -105,14 +104,15 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
 	temp->PIDSender = ptrCurrentExecuting->PID;
 	temp->PIDReceiver = dest_process_id;
 
+
 	struct PCB *receiver;
         receiver = getPCB(dest_process_id);
         
-        printf("\nSend Message: PID : %d\n", receiver->PID);
-				printf("Send Message: Sender: %d\n", temp->PIDSender);
-				printf("Send Message: Receiver: %d\n", temp->PIDReceiver);
-				printf("Send Message: Contents: %s\n", temp->messageText);
-				printf("Send Message: MessageType: %d\n\n", temp->messageType);
+                printf("\nk_send_message: Receiver PID : %s\n", debugProcessName(receiver->PID));
+				printf("k_send_message: Sender: %s\n", debugProcessName(temp->PIDSender));
+				printf("k_send_message: Receiver: %s\n", debugProcessName(temp->PIDReceiver));
+				printf("k_send_message: Contents: %s\n", temp->messageText);
+				printf("k_send_message: MessageType: %s\n\n", debugMessageType(temp->messageType));
 
         if(receiver->ptrMessageInboxHead == NULL) //Empty Inbox
         {
@@ -164,11 +164,11 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
 
 struct messageEnvelope* k_receive_message( )
 {
-	printf("K_Receive_Message: PID Receiving : %d\n", ptrCurrentExecuting->PID);
+	printf("k_receive_Message: Receiving Process : %s\n", debugProcessName(ptrCurrentExecuting->PID));
    struct messageEnvelope *temp;
    while(ptrCurrentExecuting->ptrMessageInboxHead == NULL)
    {
-   	printf("To place on blocked\n");
+   	printf("k_receive_message: To place on blocked: %s\n",debugProcessName(ptrCurrentExecuting->PID));
        if(ptrCurrentExecuting->PCBState == IPROCESS) //Iprocesses don't block
            return NULL;
        
@@ -178,12 +178,8 @@ struct messageEnvelope* k_receive_message( )
        if (result != 1)
            printf("Inside k_receive_message_env: The invoking PCB is meant to be blocked. The Enqueue function was unable to enqueue the PCB to the Blocked on Receive Q.\n");
        
-       printf("PID Receive Message\n");
-       printf("PID of :%d\n", ptrPCBBlockedReceive->queueHead->PID);
        k_process_switch();//Call Process_switch();
-   }
-
-   printf("Not putting on blocked queue\n");
+   }   
    
     if(ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage==NULL) //Inbox is size 1
      	ptrCurrentExecuting->ptrMessageInboxTail = NULL;
@@ -200,7 +196,7 @@ int  k_get_console_chars( struct messageEnvelope * temp )
 {
         if(temp == NULL)
             return -1;
-    
+           
 		k_send_message((int)PIDiProcessKeyboard,temp);
 		return 0;
 }
@@ -209,7 +205,8 @@ int  k_send_console_chars(struct messageEnvelope * temp )
 {
 		if(temp == NULL)
 			return -1;
-	
+  	    
+    
 		k_send_message((int)PIDiProcessCRT, temp);
 		kill(getpid(), SIGUSR1);
 		

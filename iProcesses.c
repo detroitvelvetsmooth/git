@@ -2,7 +2,7 @@
 #include "publicProcesses.h"
 
 void wallClock(){
-	int math = relativeTime/10;
+	int math = absoluteTime/10;
 	int hour = (math/3600)%24;
 	math %= 3600;
 	int min = math / 60;
@@ -11,6 +11,13 @@ void wallClock(){
 }
 
 void iProcessAlarm(){ //THIS FUNCTION IS IN A NON WORKING STATE . TODO
+
+     absoluteTime++;
+     
+     if(absoluteTime%10 ==0&&(displayWallClock==1)) //only displays the wall clock if the CCI demanded it
+	 { wallClock();
+	 }
+
 /*
   struct PCB * temp = ptrCurrentExecuting; 
 	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
@@ -53,13 +60,18 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 
 	struct PCB * temp = ptrCurrentExecuting; 
 	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
+	int sentMessage = 0;
+	
+  while(sentMessage ==0) //WILL FORCE THE IPROCESS TO PREVENT TERMINATION UNTIL IT HAS COMPLETED THE CONTENTS TO THE BUFFER. 
+  {
 	
 	if((*CRTSharedMemPointer).completedFlag == 0){//Indicates CRT has completed copying. Means empty buffer.
 		struct messageEnvelope* env = NULL;
+		sentMessage = 1; 
 	
 		env = k_receive_message();//primitive name
 	
-		printf("iProcessCRT: got Here %s", env->messageText);
+		printf("iProcessCRT forwarding msg to UNIXcrt: %s\n", env->messageText);
 	
 		if (env != NULL){ //which it should always be the case
 		    
@@ -68,6 +80,8 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 	      (*CRTSharedMemPointer).completedFlag = 1; //Indicate to UNIXCRT that buffer is loaded
 	      k_send_message(env->PIDSender,env);
 	  }
+	  
+   }
   }
   
   ptrCurrentExecuting = temp;
@@ -89,6 +103,7 @@ void iProcessKeyboard(){
 			    env->messageType = MSGCONSOLEINPUT;
 			    (*keyboardSharedMemPointer).completedFlag = 0;
 			    k_send_message(env->PIDSender, env);
+			    printf("iProcess Keyboard forwarding msg CCI: %s\n", env->messageText);
 			}
 	}	
 	else{

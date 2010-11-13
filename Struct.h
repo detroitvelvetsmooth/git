@@ -42,6 +42,7 @@
 #define MSGTYPEACK 3
 #define MSGTYPEWAKEUP 4
 #define MSGCONSOLEINPUT 5
+#define MSGBLANK 5
 
 #define PIDUserProcessA 0
 #define PIDUserProcessB 1
@@ -59,6 +60,11 @@ void ProcessC();
 void NullProcess();
 void CCI();
 void cleanup();
+char * debugProcessName(int PID);
+ char processName[1];
+char * debugMessageType(int Type);
+ char msg[1];
+
 //////////////// HELPER PROCESS KEYBOARD INITIALIZATION //////////////////
 
 struct Buffer  * keyboardSharedMemPointer;		// pointer to structure that is the shared memory
