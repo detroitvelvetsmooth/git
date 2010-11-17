@@ -1,4 +1,3 @@
-//#include "publicAPI.h"
 #include "publicProcesses.h"
 
 struct messageEnvelope* request_message_env()
@@ -76,10 +75,10 @@ int  change_priority(int priority, int target_process_id)
     return 1;
 }
 
-int  request_delay( int delay, int wakeup_code,struct messageEnvelope * temp ) 
+int  request_delay( int delay, struct messageEnvelope * temp ) 
 {
     atomic(1);
-	k_request_delay(delay, wakeup_code, temp);
+	k_request_delay(delay, temp);
 	atomic(0);
     return 1;
 }

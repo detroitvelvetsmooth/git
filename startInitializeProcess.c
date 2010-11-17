@@ -7,7 +7,7 @@
 /* This method will initialize the processes appropriately by first looping through an initialization table and creating and linking the PCBs
 into a linked list. Then once the PCBs are created it should
 */
-#define numProcesses 5
+
 #define processStackSize 16384
 #define processStackOffset 4
 
@@ -22,17 +22,17 @@ void (*processProgramCounter[numProcesses])(); //array of function pointers.
 // iProcess will have no priority associated with them or program counter since they are executed on demand. and are just functions.
 
 processPID[0] = PIDUserProcessA;
-processPriority[0] = LOW_PRIORITY;
+processPriority[0] = NULL_PRIORITY;
 processType[0] = READY;
 processProgramCounter[0] = ProcessA; 
 
 processPID[1] = PIDUserProcessB;
-processPriority[1] = LOW_PRIORITY;
+processPriority[1] = NULL_PRIORITY;
 processType[1] = READY;
 processProgramCounter[1] =ProcessB;
 
 processPID[2] = PIDUserProcessC;
-processPriority[2] = LOW_PRIORITY;
+processPriority[2] = NULL_PRIORITY;
 processType[2] = READY;
 processProgramCounter[2] =ProcessC;
 
@@ -45,6 +45,11 @@ processPID[4] = PIDNullProcess;
 processPriority[4] = MED_PRIORITY; //TODO CHANGE BACK TO NULL PROCESS
 processType[4] = READY;
 processProgramCounter[4] =NullProcess; 
+
+processPID[5] = PIDWallClock;
+processPriority[5] = MED_PRIORITY; //TODO CHANGE BACK TO NULL PROCESS
+processType[5] = READY;
+processProgramCounter[5] =WallClock;
 
 //Now that we can define create a PCB for all the processes and link each new process.
 

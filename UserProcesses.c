@@ -9,7 +9,8 @@ struct messageEnvelope* ProcessCQHead;
 struct messageEnvelope* ProcessCQTail;
 void CEnqueue(struct messageEnvelope* newEnv);
 struct messageEnvelope* CDequeue();
-int isCQEmpty();
+     struct messageEnvelope* ProcessCQHead = NULL;
+     struct messageEnvelope* ProcessCQTail = NULL;
 
 ///////////////// PROCESSES ////////////////////
 
@@ -60,27 +61,25 @@ void ProcessB(){
 }
 
 void ProcessC(){
-     //TODO: Perform Initialization of local message queue
+     
      
      printf("Entered Process C\n");
-     ProcessCQHead = NULL;
-     ProcessCQTail = NULL;
      struct messageEnvelope* CEnv;
      int status, count;
      
      //Start infinite loop.
      do{
         //Check local queue for waiting messages. Dequeue a waiting message, otherwise receive message.
-        if(isCQEmpty()==1) 
+        if(ProcessCQHead==NULL)  //CHECKS TO SEE IF IT IS EMPTY
             CEnv = receive_message();
         else
-            CEnv = CDequeue();
-        //Check messagetype to make sure its from process B.
+            CEnv = CDequeue();       //RETURNS MESAGE FROM LOCAL QUEUE. 
+            //Check messagetype to make sure its from process B.
        
         if (CEnv->messageType == MSGTYPECOUNT){
             //If message content is devisable by 20 then continue.
-            count = atoi(CEnv->messageText);
-            if ((count%20) == 0){ 
+            count = atoi(CEnv->messageText); //TURNS FROM A CHARACTER ARRAY TO AN INTEGER.
+            if ((count%20) == 0){ // means it is divisible.
               
                strcpy(CEnv->messageText, "Process C\0");
                
@@ -94,7 +93,9 @@ void ProcessC(){
                    CEnv = receive_message();
                }
                //Request Sleep.
-               CEnv->messageType = MSGTYPESLEEP;
+                
+               
+               request_delay(100,CEnv);
                strcpy(CEnv->messageText, "10\0");
                //request_delay(CEnv); //TODO: Fill in Proper function name.
                //Once done sleeping, enqueue all messages received during sleep to the local queue.
@@ -117,13 +118,14 @@ void ProcessC(){
 void NullProcess(){
 //Infinite Loop
      do{
-     	//	printf("....");
+     		printf("....I'm the null process...\n");
      		sleep(2);
            release_processor();
      }while(1);
 }
 void CCI()
 {
+   
 	int hour, min, sec;
 	int newPri, PID;
 	char tempChar;
@@ -156,8 +158,10 @@ void CCI()
 			temp = receive_message();
 		}
 		else if(strcmp(temp->messageText, "s\0")==0)
-		{
-			send_message((int)(PIDUserProcessA), temp);
+		{    
+            struct messageEnvelope * messageForProcess = NULL;
+            messageForProcess = request_message_env();
+			send_message((int)(PIDUserProcessA), messageForProcess);
 			release_processor(); 
 		}
 		else if(strcmp(temp->messageText, "ps\0")==0)
@@ -168,7 +172,7 @@ void CCI()
 		}
 	
 		else if(strcmp(temp->messageText, "cd\0")==0)
-		{
+		{    printf("Changing wall clock to one\n");
 			displayWallClock=1;//change flag of wall clock to send time to CRT every second
 		}
 		else if(strcmp(temp->messageText, "ct\0")==0)
@@ -217,17 +221,40 @@ void CCI()
 			temp = receive_message();
 		}
 	
-	//release_processor(); TODO UNCOMMENT THIS LINE. 
+//	release_processor(); TODO UNCOMMENT THIS LINE. 
 	}
 }
 
-///////////////////// USER PROCESSES HELPER FUNCTIONS ////////////
-int isCQEmpty(){
-    if(ProcessCQHead == NULL)
-       return 1;
-    else
-       return 0;
+void WallClock(){
+     struct messageEnvelope* temp;
+     temp = request_message_env();
+     int math, hour, min, sec;
+     char time[10];
+     do
+     {  printf("Wall Clock Entered Main Loop\n");
+    	if(displayWallClock == 1){
+                            printf("Wall Clock Entered\n");
+        temp->messageType = MSGTYPEDATA;                    
+        math = relativeTime/10;
+        hour = (math/3600)%24;
+	    math %= 3600;
+	    min = math / 60;
+	    sec = math % 60;
+        sprintf (time,"%02d:%02d:%02d\0",hour,min,sec); 
+        strcpy(temp->messageText,time);
+        send_console_chars(temp);
+        temp = receive_message();
+        temp->messageType = MSGTYPEWAKEUP;  
+        request_delay(10, temp);
+        temp = receive_message();
+        
+        }
+        
+      release_processor();
+     }while(1);
 }
+///////////////////// USER PROCESSES HELPER FUNCTIONS ////////////
+
 struct messageEnvelope* CDequeue(){
     struct messageEnvelope* returnEnv;
     //Empty Queue Case

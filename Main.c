@@ -63,6 +63,7 @@ ptrPCBBlockedAllocate = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBBlockedAllocate).queueHead= NULL;
 (*ptrPCBBlockedAllocate).queueTail= NULL;
 
+ptrTimingList = NULL;
 
 ////////////////// MESSAGE ENVELOPES /////////////////////////
 
@@ -73,7 +74,7 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 	
 		
 		signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
-	    ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
+	   // ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
 	
     	ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
   	    initializeProcessReadyQueue();
@@ -293,6 +294,9 @@ char* debugProcessName(int PID)
      
      else if(PID == PIDiProcessTimer)
      strcpy(processName, "Timer iProcess\0");
+     
+      else if(PID == PIDWallClock)
+     strcpy(processName, "Wall Clock\0");
 
      return processName;
 }
@@ -301,9 +305,6 @@ char* debugMessageType(int Type)
 {
      if(Type == MSGTYPEDATA)
      strcpy(msg, "MSGTYPEDATA\0");
-     
-    else if(Type == MSGTYPESLEEP)
-     strcpy(msg, "MSGTYPESLEEP\0");
      
      else if(Type == MSGTYPEACK)
      strcpy(msg, "MSGTYPEACK\0");

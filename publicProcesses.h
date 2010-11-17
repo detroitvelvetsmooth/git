@@ -18,7 +18,7 @@ void k_process_switch();
 int  k_request_process_status(struct messageEnvelope * temp );
 
 int  k_change_priority(int new_priority, int targetID); 
-int  k_request_delay(int delay, int wakeup_code, struct messageEnvelope * temp);
+int  k_request_delay(int delay, struct messageEnvelope * temp);
 int  k_get_trace_buffers(struct messageEnvelope* temp);
 int  k_terminate();
 
@@ -31,8 +31,5 @@ int Enqueue(struct PCB* ptr,struct nodePCB* Q);
 struct PCB* Dequeue(struct nodePCB* Q);
 struct PCB* SearchPCBDequeue(int searchPID, struct nodePCB* Q);
 struct PCB* ReadyProcessDequeue();
-
-/////////////TO BE WRITTEN //////////////
-void requestSleep();
 
 	#endif

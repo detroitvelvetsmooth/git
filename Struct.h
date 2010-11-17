@@ -18,11 +18,11 @@
 #define BUFFERSIZE 100; //will be used by the shared memory of the keyboard and CRT processes.
 #define MAXCHAR 80	 // specifies the buffer length for the shared memory.
 
-#define alarmDelayTime 	100000 //delays 10 seconds
-#define alarmFrequency  100000  // set the frequency of the signal to 100 ms. It is a #define since these will not change at all.
+#define alarmDelayTime 	900000 //delays 10 seconds
+#define alarmFrequency  900000  // set the frequency of the signal to 100 ms. It is a #define since these will not change at all.
 
-#define numProcesses 5 //SPECIFIES NUMBER OF PROCESSES THAT REQUIRE CONTEXT INITIALIZATION (all minus iprocess)
-#define numProcessesTotal 8
+#define numProcesses 6 //SPECIFIES NUMBER OF PROCESSES THAT REQUIRE CONTEXT INITIALIZATION (all minus iprocess)
+#define numProcessesTotal 9
 
 #define HIGH_PRIORITY 0
 #define MED_PRIORITY  1
@@ -38,10 +38,9 @@
 
 #define MSGTYPEDATA 0
 #define MSGTYPECOUNT 1
-#define MSGTYPESLEEP 2
-#define MSGTYPEACK 3
-#define MSGTYPEWAKEUP 4
-#define MSGCONSOLEINPUT 5
+#define MSGTYPEACK 2
+#define MSGTYPEWAKEUP 3
+#define MSGCONSOLEINPUT 4
 #define MSGBLANK 5
 
 #define PIDUserProcessA 0
@@ -52,6 +51,7 @@
 #define PIDiProcessKeyboard 5
 #define PIDiProcessCRT 6
 #define PIDiProcessTimer 7
+#define PIDWallClock 8
 
 ////////////// MISCELLANEOUS FUNCTIONS USED BY INITIALIZING METHODS ////////////
 void ProcessA();
@@ -59,6 +59,8 @@ void ProcessB();
 void ProcessC();
 void NullProcess();
 void CCI();
+void WallClock();
+void iProcessCRT();
 void cleanup();
 char * debugProcessName(int PID);
  char processName[1];
@@ -117,6 +119,7 @@ struct nodePCB* ptrPCBReadyHigh;
 
 struct nodePCB* ptrPCBBlockedReceive; //pointer to the blocked on message receive queue.
 struct nodePCB* ptrPCBBlockedAllocate; //pointer to the blocked on envelope allocate receive queue.
+struct messageEnvelope* ptrTimingList;
 
 //////////////// EMPTY MESSAGE ENVELOPES QUEUE ///////////
 

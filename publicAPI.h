@@ -16,7 +16,7 @@ int  send_console_chars(struct messageEnvelope * temp );
 int  release_processor();
 int  request_process_status(struct messageEnvelope * temp );
 int  change_priority(int priority, int target_process_id);
-int  request_delay( int delay, int wakeup_code,struct messageEnvelope * temp );
+int  request_delay( int delay, struct messageEnvelope * temp );
 int  terminate();
 int  get_trace_buffers(struct messageEnvelope * temp);
 
