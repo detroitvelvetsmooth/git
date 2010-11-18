@@ -76,7 +76,7 @@ void iProcessAlarm(){
 
 }
 
-void iProcessCRT(){ 
+/*void iProcessCRT(){ 
 
 	struct PCB * temp = ptrCurrentExecuting; 
 	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
@@ -103,10 +103,10 @@ void iProcessCRT(){
   
   
   ptrCurrentExecuting = temp;
-}
+}*/
 
 
-/*
+
 void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 
 	//Change current executing pcb to iProcessCRT's PCB
@@ -125,7 +125,6 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 		}
 	}
 	else if((*CRTSharedMemPointer).completedFlag == 1){//The iProcessCRT is fulfilling another message output at this moment.
-		//DO NOTHING
 	}
 	else{//The UNIXCRT has signalled the RTX to let it know it has emptied and printed the buffer.
 		outputMsg->messageType = MSGTYPEACK;
@@ -138,7 +137,7 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 	}
 	ptrCurrentExecuting = temp; //Reset to the current executing process.
 }
-*/
+
 
 
 void iProcessKeyboard(){

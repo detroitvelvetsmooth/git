@@ -34,8 +34,10 @@ int main (int argc, char * argv[]){
 	output_mem_p->data[0] = '\0';
 
 	do{
-		while(output_mem_p->completedFlag == 0) //Buffer Full, Wait until buffer is empty
-			usleep(500);
+		while(output_mem_p->completedFlag == 0){ //Buffer Full, Wait until buffer is empty
+			usleep(2000);
+			kill(parent_id, SIGUSR1); //Resend signal in case it was ignored by RTX
+		}
                 strcpy(output_text, output_mem_p->data);
 		printf("\n%s", output_text);
 /*		printf("\nUNIXcrt says: %s", output_text);*/

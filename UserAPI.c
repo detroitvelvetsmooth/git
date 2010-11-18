@@ -70,9 +70,10 @@ struct messageEnvelope*  request_process_status(struct messageEnvelope * temp )
 int  change_priority(int priority, int target_process_id)
 {
     atomic(1);
-	k_change_priority(priority, target_process_id);
+	int result;
+	result = k_change_priority(priority, target_process_id);
 	atomic(0);
-    return 1;
+    return result;
 }
 
 int  request_delay( int delay, struct messageEnvelope * temp ) 

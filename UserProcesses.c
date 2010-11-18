@@ -18,12 +18,12 @@ struct messageEnvelope* CDequeue();
 
 void ProcessA(){
 	 printf("Entered Process A\n");
-   struct messageEnvelope* start;
+     struct messageEnvelope* start;
      start = receive_message();
      //Check for start message sent by CCI
      
 	 while(strcmp(start->messageText, "s\0")!=0){
-        printf("\nNOT THE RIGHT STUFF\n");
+		release_message_env(start);
         start = receive_message();
 	 }
      printf("\nStart command received. Starting Process A\n");
@@ -129,6 +129,7 @@ void CCI()
    
 	int hour, min, sec;
 	int newPri, PID;
+	int check_result;
 	char tempChar;
 	struct messageEnvelope *temp;
 	temp = request_message_env(); //ONLY REQUESTS ONE ENVELOPE TOTAL. 
@@ -148,9 +149,12 @@ void CCI()
 		temp = receive_message(); //assuming KB iProcess sends env    back to process //GETS THE MESSAGE BACK FROM THE KEYBOARD IPROCESS.
 /*		printf("CCI: Our Message back from KBD: %s\n", temp->messageText);*/
 		
-	 if(temp->messageType != MSGCONSOLEINPUT)
-		printf("This was not a command message");
-	
+		if(temp->messageType != MSGCONSOLEINPUT){
+			strcpy(temp->messageText, "Message sent to CCI that was not from keyboard. Message ignored.\0");
+			send_console_chars(temp);
+			temp = receive_message();
+		}
+
 	else if(strcmp(temp->messageText, "\0")==0) 
 		{  
 /* 			DOES NOTHING	*/
@@ -180,19 +184,24 @@ void CCI()
 		{
 			displayWallClock=0;//change flag of wall clock to stop sending time to CRT
 		}
-		else if(temp->messageText[0] == 'c')
+		else if(temp->messageText[0] == 'c' && temp->messageText[1] == ' ')
 		{
-			sscanf(temp->messageText, "%c %d:%d:%d", &tempChar, &hour, &min, &sec); //needs to check if correct number of items passed
-			if(hour < 0 || hour >=24 || min < 0 || min >=60 || sec < 0 || sec >= 60)
-			{
-			
-				strcpy(temp->messageText, "Illegal Time Entered\0");
-				send_console_chars(temp);
-				temp = receive_message();
+			if(sscanf(temp->messageText, "%c %d:%d:%d", &tempChar, &hour, &min, &sec) == 4){ //needs to check if correct number of items passed
+				if(hour < 0 || hour >=24 || min < 0 || min >=60 || sec < 0 || sec >= 60)
+				{			
+					strcpy(temp->messageText, "Illegal Time Entered.\0");
+					send_console_chars(temp);
+					temp = receive_message();
+				}
+				else
+				{
+	  				relativeTime = (hour*3600+min*60+sec)*10; //Sets the relative time. 	
+				}
 			}
-			else
-			{
-	  			relativeTime = (hour*3600+min*60+sec)*10; //Sets the relative time. 	
+			else{
+					strcpy(temp->messageText, "Illegal Time Command Format Entered.\0");
+					send_console_chars(temp);
+					temp = receive_message();
 			}
 		}
 		else if(strcmp(temp->messageText, "b\0")==0)
@@ -205,20 +214,33 @@ void CCI()
 		{
 			terminate();
 		}
-		else if(temp->messageText[0] == 'n') //WORKS?
+		else if(temp->messageText[0] == 'n' && temp->messageText[1] == ' ') //WORKS?
 		{
-			sscanf(temp->messageText, "%c %d %d", &tempChar, &newPri, &PID); //needs to check if correct number of items passed
-			int check = change_priority(newPri, PID);
-			if(check == -1)
-			{
-				strcpy(temp->messageText, "Priority Change Failed\0");
-				send_console_chars(temp);
-				temp = receive_message();
+			if(sscanf(temp->messageText, "%c %d %d", &tempChar, &newPri, &PID)==3){ //needs to check if correct number of items passed
+				check_result = change_priority(newPri, PID); 
+				if(check_result == -1) //Priority or PID didn't match values in system
+				{
+					strcpy(temp->messageText, "Priority Change Failed.\0");
+					send_console_chars(temp);
+					temp = receive_message();
+				}
+				else if(check_result == 0) //Tried to change priority of process that cannot be changed.
+				{
+					strcpy(temp->messageText, "Illegal PID entered. Unable to change process ID of NULL process.\0");
+					send_console_chars(temp);
+					temp = receive_message();
+				}
 			}
+			else{ //Scan format failed
+					strcpy(temp->messageText, "Illegal Priority Command Format Entered.\0");
+					send_console_chars(temp);
+					temp = receive_message();
+			}
+
 		}
 		else //THIS WORKS
 		{ 
-			strcpy(temp->messageText, "Illegal Command\0");
+			strcpy(temp->messageText, "Illegal Command.\0");
 			send_console_chars(temp);
 			temp = receive_message();
 		}
@@ -258,7 +280,6 @@ struct messageEnvelope* CDequeue(){
     struct messageEnvelope* returnEnv;
     //Empty Queue Case
     if(ProcessCQHead==NULL){
-       printf("CDequeue: Dequeue requested, but Process C's Q is empty.\n");
        return NULL;
     }
     //Standard Case
