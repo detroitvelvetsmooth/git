@@ -317,6 +317,9 @@ char* debugMessageType(int Type)
      
      else if(Type == MSGBLANK)
      strcpy(msg, "MSGBLANK\0");
+
+	 else if(Type == MSGTYPECOUNT)
+		 strcpy(msg, "MSGTYPECOUNT");
      
      return msg;
 }

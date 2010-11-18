@@ -17,13 +17,15 @@ struct messageEnvelope* CDequeue();
 
 
 void ProcessA(){
-		printf("Entered Process A\n");
+	 printf("Entered Process A\n");
      struct messageEnvelope* start;
      start = receive_message();
      //Check for start message sent by CCI
      
-     while(start->messageText[0] !='s')
+	 while(strcmp(start->messageText, "s\0")!=0){
+        printf("\nNOT THE RIGHT STUFF\n");
         start = receive_message();
+	 }
      printf("\nStart command received. Starting Process A\n");
      release_message_env(start);
      int count, status;
@@ -34,12 +36,12 @@ void ProcessA(){
         //Request Envelope, change message type, place counter contents in message, and send to process B
         countEnv = request_message_env();
         countEnv->messageType = MSGTYPECOUNT;
-        countEnv->messageText[0] = (char)count;
+        sprintf(countEnv->messageText,"%d",count);
         status = send_message(PIDUserProcessB, countEnv);
         if (status != 1)
            printf("\n Send_Message failed from ProcessA to ProcessB\n");
         count ++;
-        release_processor(); //TODO: Write function.
+        release_processor();
      }while(1); 
      printf("\nProcess A code reached a point where it shouldn't. ERROR.\n");
 }
@@ -78,9 +80,8 @@ void ProcessC(){
        
         if (CEnv->messageType == MSGTYPECOUNT){
             //If message content is devisable by 20 then continue.
-            count = atoi(CEnv->messageText); //TURNS FROM A CHARACTER ARRAY TO AN INTEGER.
+            sscanf(CEnv->messageText, "%d", &count); //TURNS FROM A CHARACTER ARRAY TO AN INTEGER.
             if ((count%20) == 0){ // means it is divisible.
-              
                strcpy(CEnv->messageText, "Process C\0");
                
                status = send_console_chars(CEnv);
@@ -92,12 +93,10 @@ void ProcessC(){
                    CEnqueue(CEnv); //TODO: Fill in Proper Function Name.
                    CEnv = receive_message();
                }
-               //Request Sleep.
-                
                
+			   //Request Sleep. 
                request_delay(100,CEnv);
-               strcpy(CEnv->messageText, "10\0");
-               //request_delay(CEnv); //TODO: Fill in Proper function name.
+             
                //Once done sleeping, enqueue all messages received during sleep to the local queue.
                do{
                   CEnv = receive_message();
@@ -118,7 +117,7 @@ void ProcessC(){
 void NullProcess(){
 //Infinite Loop
      do{
-     		printf("....I'm the null process...\n");
+		 printf("....I'm the null process...and my priority:%d\n", ptrCurrentExecuting->processPriority);
      		sleep(2);
            release_processor();
      }while(1);
@@ -161,6 +160,7 @@ void CCI()
 		{    
             struct messageEnvelope * messageForProcess = NULL;
             messageForProcess = request_message_env();
+			strcpy(messageForProcess->messageText,temp->messageText);
 			send_message((int)(PIDUserProcessA), messageForProcess);
 			release_processor(); 
 		}
@@ -179,7 +179,7 @@ void CCI()
 		{
 			displayWallClock=0;//change flag of wall clock to stop sending time to CRT
 		}
-		else if(temp->messageText[0] == 'c') 
+		else if(temp->messageText[0] == 'c')
 		{
 			sscanf(temp->messageText, "%c %d:%d:%d", &tempChar, &hour, &min, &sec); //needs to check if correct number of items passed
 			if(hour < 0 || hour >=24 || min < 0 || min >=60 || sec < 0 || sec >= 60)
@@ -231,9 +231,9 @@ void WallClock(){
      int math, hour, min, sec;
      char time[10];
      do
-     {  printf("Wall Clock Entered Main Loop\n");
+     {  
     	if(displayWallClock == 1){
-                            printf("Wall Clock Entered\n");
+        printf("Wall Clock Entered\n");
         temp->messageType = MSGTYPEDATA;                    
         math = relativeTime/10;
         hour = (math/3600)%24;
@@ -247,7 +247,6 @@ void WallClock(){
         temp->messageType = MSGTYPEWAKEUP;  
         request_delay(10, temp);
         temp = receive_message();
-        
         }
         
       release_processor();
