@@ -48,11 +48,11 @@
 #define PIDUserProcessB 1
 #define PIDUserProcessC 2
 #define PIDcci 3
-#define PIDNullProcess 4
-#define PIDiProcessKeyboard 5
-#define PIDiProcessCRT 6
-#define PIDiProcessTimer 7
-#define PIDWallClock 8
+#define PIDWallClock 4
+#define PIDNullProcess 5
+#define PIDiProcessKeyboard 6
+#define PIDiProcessCRT 7
+#define PIDiProcessTimer 8	
 
 ////////////// MISCELLANEOUS FUNCTIONS USED BY INITIALIZING METHODS ////////////
 void ProcessA();

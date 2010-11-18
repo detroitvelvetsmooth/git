@@ -41,15 +41,17 @@ processPriority[3] = HIGH_PRIORITY;
 processType[3] = READY;
 processProgramCounter[3] =CCI;
 
-processPID[4] = PIDNullProcess;
-processPriority[4] = NULL_PRIORITY; 
+processPID[4] = PIDWallClock;
+processPriority[4] = LOW_PRIORITY;
 processType[4] = READY;
-processProgramCounter[4] =NullProcess; 
+processProgramCounter[4] =WallClock;
 
-processPID[5] = PIDWallClock;
-processPriority[5] = LOW_PRIORITY;
+processPID[5] = PIDNullProcess;
+processPriority[5] = NULL_PRIORITY; 
 processType[5] = READY;
-processProgramCounter[5] =WallClock;
+processProgramCounter[5] =NullProcess; 
+
+
 
 //Now that we can define create a PCB for all the processes and link each new process.
 
@@ -199,7 +201,7 @@ void initializeProcessContext(){
 			}
 			else{
 				
-				printf("initializeProcessContext: Process to Start for First Time: %s\n", debugProcessName(ptrCurrentExecuting->PID)); //prints the pcb of the process about to be executed.
+/*				printf("initializeProcessContext: Process to Start for First Time: %s\n", debugProcessName(ptrCurrentExecuting->PID)); //prints the pcb of the process about to be executed.*/
 				ptrCurrentExecuting->programCounter(); //executes for the first time.
 			    printf("initializeProcessContext: Process failed to execute correctly or never called a context switch\n");
 			

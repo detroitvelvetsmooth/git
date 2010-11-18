@@ -1,29 +1,7 @@
 #include "Struct.h"
 #include "publicProcesses.h"
 
-/*void wallClock(){
-	int math = absoluteTime/10;
-	int hour = (math/3600)%24;
-	math %= 3600;
-	int min = math / 60;
-	int sec = math % 60;
-	
-	struct messageEnvelope * msg =NULL;
-    msg = k_receive_message();
-    if(msg!=NULL)
-	{
-    	
-        char * time[10];
-        sprintf (time,"%02d:%02d:%02d\0",hour,min,sec);
-    
-         strcpy(msg->messageText,time);
-         k_send_message(msg);
-         iProcessCRT();
-    }
-	//printf("%02d:%02d:%02d\n",hour,min,sec);  //THIS WILL BE MODIFIED, INSTEAD OF PRINTF, IT WILL COMMUNICATE WITH THE CRT PROCESS (SOMEHOW) 
-	
-}
-*/
+
 struct messageEnvelope* TimingListDequeue(){
        if(ptrTimingList == NULL)
            return NULL;
@@ -101,7 +79,7 @@ void iProcessAlarm(){
 
 }
 
-void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
+void iProcessCRT(){ 
 
 	struct PCB * temp = ptrCurrentExecuting; 
 	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
@@ -146,7 +124,7 @@ void iProcessKeyboard(){
 			    env->messageType = MSGCONSOLEINPUT;
 			    (*keyboardSharedMemPointer).completedFlag = 0;
 			    k_send_message(env->PIDSender, env);
-			    printf("iProcess Keyboard forwarding msg CCI: %s\n", env->messageText);
+/*			    printf("iProcess Keyboard forwarding msg CCI: %s\n", env->messageText);*/
 			}
 	}	
 	else{

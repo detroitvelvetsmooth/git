@@ -136,27 +136,12 @@ int priority = -1;
 
 		if(priority == HIGH_PRIORITY){
 
-			//EXECUTES BRIAN'S ENQUEUE.
-			/*			
-			if(ptrPCBReadyHigh->queueHead==NULL){ //MEANS IT IS THE FIRST ONE TO JOIN THE QUEUE.
-			ptrPCBReadyHigh->queueHead = ptrPCBTemporary; //ptrPCBTemporary would be pointing to a pcb of high priority
-			ptrPCBReadyHigh->queueTail = ptrPCBTemporary ; // we wish to update the tail as well.
-			
-			}
-			else{ //we will follow the tail, append it to the tail and update the tail.
-
-			ptrPCBReadyHigh->queueTail->ptrNextPCBQueue = ptrPCBTemporary;  // adds it to pointer of the PCB
-			ptrPCBReadyHigh->queueTail = ptrPCBTemporary;   // updates the tail.
-			}
-			*/
 			//SINCE THERE IS ONLY ONE HIGH PRIORITY FOR THE MOMENT, THE CCI DOES NOT GET PLACED IN PRIORITY QUEUE AND SIMPLY POINTS THE PTRCURRENTEXECUTING TO THE PCB.
 			ptrCurrentExecuting = ptrPCBTemporary; // updates ptrCurrentExecuting to point to the last pcb on the ready queue. 
 
+   		}
+		else if(priority == MED_PRIORITY){
 
-   }
-   else if(priority == MED_PRIORITY){
-
-			//EXECUTES BRIAN'S ENQUEUE.
 			if(ptrPCBReadyMed->queueHead==NULL){
 			ptrPCBReadyMed->queueHead = ptrPCBTemporary;
 			ptrPCBReadyMed->queueTail = ptrPCBTemporary ;
@@ -169,10 +154,9 @@ int priority = -1;
 			ptrPCBReadyMed->queueTail = ptrPCBTemporary;
 			ptrPCBTemporary -> ptrNextPCBQueue = NULL;
 			}
-        }
-	else if(priority==LOW_PRIORITY){
+        	}
+		else if(priority==LOW_PRIORITY){
 
-			//EXECUTES BRIAN'S ENQUEUE.
 			if(ptrPCBReadyLow->queueHead==NULL){
 			ptrPCBReadyLow->queueHead = ptrPCBTemporary;
 			ptrPCBReadyLow->queueTail = ptrPCBTemporary ;
@@ -185,10 +169,9 @@ int priority = -1;
 			ptrPCBTemporary -> ptrNextPCBQueue = NULL;
 			}
 
-  }
-	else if(priority==NULL_PRIORITY){
+  		}
+		else if(priority==NULL_PRIORITY){
 
-			//EXECUTES BRIAN'S ENQUEUE.
 			if(ptrPCBReadyNull->queueHead==NULL){
 			ptrPCBReadyNull->queueHead = ptrPCBTemporary;
 			ptrPCBReadyNull->queueTail = ptrPCBTemporary ;
@@ -204,7 +187,7 @@ int priority = -1;
 		}
 
 	else{
-		//What to do here?
+		//What to do here? This should never bee executed.
 		}
 
 	}
@@ -326,4 +309,5 @@ char* debugMessageType(int Type)
      
      return msg;
 }
+
 

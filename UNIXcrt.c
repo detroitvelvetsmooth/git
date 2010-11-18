@@ -37,7 +37,8 @@ int main (int argc, char * argv[]){
 		while(output_mem_p->completedFlag == 0) //Buffer Full, Wait until buffer is empty
 			usleep(500);
                 strcpy(output_text, output_mem_p->data);
-		printf("UNIXcrt says: %s\n", output_text);
+		printf("\n%s", output_text);
+/*		printf("\nUNIXcrt says: %s", output_text);*/
 		fflush(stdout); //FLUSHES TO THE SCREEN.
 		output_mem_p->completedFlag = 0;
 		output_mem_p->bufferLength = 0;

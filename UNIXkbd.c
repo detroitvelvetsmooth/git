@@ -42,8 +42,8 @@ int main (int argc, char * argv[]){
 			input_mem_p->data[i] ='\0';
 			i = 0;
 			input_mem_p->completedFlag = 1; //LETS THE IPROCESS KNOW ITS READY. 
-			printf("UNIXkbd says: Input received. Notifying keyboardIprocess\n");
-			fflush(stdout); 
+/*			printf("UNIXkbd says: Input received. Notifying keyboardIprocess\n");*/
+/*			fflush(stdout); */
 			kill(parent_id, SIGUSR2); //sends signal to the mainRTX.
 			while (input_mem_p->completedFlag == 1)
 			sleep(1);

@@ -131,7 +131,7 @@ void CCI()
 	int newPri, PID;
 	char tempChar;
 	struct messageEnvelope *temp;
-	temp = request_message_env(); //should we request and release an envelope on every cycle?
+	temp = request_message_env(); //ONLY REQUESTS ONE ENVELOPE TOTAL. 
 	temp ->PIDSender = PIDcci;
 	temp ->messageType = (int)MSGTYPEDATA;
 	
@@ -142,21 +142,20 @@ void CCI()
 		send_console_chars(temp);
 		
 		temp = receive_message(); //GETS THE MESSAGE BACK FROM THE CRT. 
-		printf("CCI: Our Message back from CRT: %s\n", temp->messageText);
+/*		printf("CCI: Our Message back from CRT: %s\n", temp->messageText);*/
 	
 		get_console_chars(temp);
 		temp = receive_message(); //assuming KB iProcess sends env    back to process //GETS THE MESSAGE BACK FROM THE KEYBOARD IPROCESS.
-		printf("CCI: Our Message back from KBD: %s\n", temp->messageText);
+/*		printf("CCI: Our Message back from KBD: %s\n", temp->messageText);*/
 		
 	 if(temp->messageType != MSGCONSOLEINPUT)
 		printf("This was not a command message");
 	
-	else if(strcmp(temp->messageText, "test")==0) //REMOVE THE 'TEST'
-		{
-			strcpy(temp->messageText, "Hello\0"); //TODO just for testing...
-			send_console_chars(temp);
-			printf("sent the message, now waiting for it receiving/n");
-			temp = receive_message();
+	else if(strcmp(temp->messageText, "\0")==0) 
+		{  
+/* 			DOES NOTHING	*/
+/*			send_console_chars(temp);*/
+/*			temp = receive_message();*/
 		}
 		else if(strcmp(temp->messageText, "s\0")==0)
 		{    
@@ -169,12 +168,12 @@ void CCI()
 		else if(strcmp(temp->messageText, "ps\0")==0)
 		{
 			temp = request_process_status(temp);
-			send_console_chars(temp); //we need to figure out where the status info get put into a table format. Here??
+			send_console_chars(temp); 
 			temp = receive_message();
 		}
 	
 		else if(strcmp(temp->messageText, "cd\0")==0)
-		{    printf("Changing wall clock to one\n");
+		{    
 			displayWallClock=1;//change flag of wall clock to send time to CRT every second
 		}
 		else if(strcmp(temp->messageText, "ct\0")==0)
@@ -193,13 +192,7 @@ void CCI()
 			}
 			else
 			{
-			
-				relativeTime = (hour*3600+min*60+sec)*10; //Sets the relative time. 
-					printf("Relative Time : %d\n", relativeTime);
-				printf("hour Time : %d\n", hour);
-				printf("min Time : %d\n", min);
-				printf("second Time : %d\n", sec);
-				
+	  			relativeTime = (hour*3600+min*60+sec)*10; //Sets the relative time. 	
 			}
 		}
 		else if(strcmp(temp->messageText, "b\0")==0)
@@ -212,7 +205,7 @@ void CCI()
 		{
 			terminate();
 		}
-		else if(temp->messageText[0] == 'n')
+		else if(temp->messageText[0] == 'n') //WORKS?
 		{
 			sscanf(temp->messageText, "%c %d %d", &tempChar, &newPri, &PID); //needs to check if correct number of items passed
 			int check = change_priority(newPri, PID);
@@ -223,8 +216,8 @@ void CCI()
 				temp = receive_message();
 			}
 		}
-		else
-		{
+		else //THIS WORKS
+		{ 
 			strcpy(temp->messageText, "Illegal Command\0");
 			send_console_chars(temp);
 			temp = receive_message();
