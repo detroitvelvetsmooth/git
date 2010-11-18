@@ -13,10 +13,12 @@
 #include <sys/wait.h>
 #include <string.h>
 
+
 // The libraries included here will be common to all files. If a particular file requires additional libraries they will be imported on the fly.
 
 #define BUFFERSIZE 100; //will be used by the shared memory of the keyboard and CRT processes.
 #define MAXCHAR 80	 // specifies the buffer length for the shared memory.
+#define MAXTRACEBUFFER 16 // Maximum number of entries in trace buffers
 
 #define alarmDelayTime 	900000 //delays 10 seconds
 #define alarmFrequency  100000  // set the frequency of the signal to 100 ms. It is a #define since these will not change at all.
@@ -95,14 +97,8 @@ struct messageEnvelope* ptrTimingList; // will be a  pointer to a linked list th
 
 ////////////// TRACE BUFFERS ///////////////////
 
-int sendTraceBuffer[16][3];		// [0] will be PID, [1] will be state, and [2] will be priority
-int receiveTraceBuffer[16][3]; // for the time being the trace buffers will be 2 dimensional arrays  but these could later change to an array of structs.
-
-int receiveTraceBufferIndexHead;
-int receiveTraceBufferIndexTail;
-
-int sendTraceBufferIndexHead;
-int sendTraceBufferIndexTail; // for the trace buffers we need to have a head and tail pointers since we will be using a circular array to print the last 16 messages.
+struct traceBuffer* sendTraceBuffer;		// [0] will be PID, [1] will be state, and [2] will be priority
+struct traceBuffer* receiveTraceBuffer; // for the time being the trace buffers will be 2 dimensional arrays  but these could later change to an array of structs.
 
 ///////////////// GENERAL PCB LIST ///////////////////
 struct PCB* ptrCurrentExecuting; //will point to the currently executing Process.
@@ -134,6 +130,12 @@ struct Buffer{
 	int completedFlag;
 	char data[MAXCHAR];
 	int bufferLength;
+};
+
+struct traceBuffer{
+	int head;
+	int tail;
+	int data[MAXTRACEBUFFER][4];
 };
 
 struct nodePCB{  // Will be used to contain the head and tail pointers of whatever it is pointing to. 

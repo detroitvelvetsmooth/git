@@ -1,29 +1,7 @@
 #include "Struct.h"
 #include "publicProcesses.h"
 
-/*void wallClock(){
-	int math = absoluteTime/10;
-	int hour = (math/3600)%24;
-	math %= 3600;
-	int min = math / 60;
-	int sec = math % 60;
-	
-	struct messageEnvelope * msg =NULL;
-    msg = k_receive_message();
-    if(msg!=NULL)
-	{
-    	
-        char * time[10];
-        sprintf (time,"%02d:%02d:%02d\0",hour,min,sec);
-    
-         strcpy(msg->messageText,time);
-         k_send_message(msg);
-         iProcessCRT();
-    }
-	//printf("%02d:%02d:%02d\n",hour,min,sec);  //THIS WILL BE MODIFIED, INSTEAD OF PRINTF, IT WILL COMMUNICATE WITH THE CRT PROCESS (SOMEHOW) 
-	
-}
-*/
+
 struct messageEnvelope* TimingListDequeue(){
        if(ptrTimingList == NULL)
            return NULL;
@@ -129,6 +107,41 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
   
   ptrCurrentExecuting = temp;
 }
+
+
+/*void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
+
+	//Change current executing pcb to iProcessCRT's PCB
+	struct PCB * temp = ptrCurrentExecuting; 
+	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
+
+	static struct messageEnvelope* outputMsg = NULL; //outputMsg will need to be stored for future use
+
+	if(outputMsg == NULL){ //The iProcessCRT is not fulfilling another message output at this moment.
+		outputMsg = k_receive_message();
+		if(outputMsg == NULL){
+		}
+		else{
+			strcpy((*CRTSharedMemPointer).data, outputMsg->messageText);
+			(*CRTSharedMemPointer).completedFlag = 1;
+		}
+	}
+	else if((*CRTSharedMemPointer).completedFlag == 1){//The iProcessCRT is fulfilling another message output at this moment.
+		//DO NOTHING
+	}
+	else{//The UNIXCRT has signalled the RTX to let it know it has emptied and printed the buffer.
+		outputMsg->messageType = MSGTYPEACK;
+		k_send_message(outputMsg->PIDSender, outputMsg); //Send aknowledgement message to the process with the fulfilled request
+		outputMsg = k_receive_message(); //Check if there are more messages to be outputed.
+		if (outputMsg != NULL){ //If there are, copy to buffer.
+			strcpy((*CRTSharedMemPointer).data, outputMsg->messageText);
+			(*CRTSharedMemPointer).completedFlag = 1;
+		}
+	}
+	ptrCurrentExecuting = temp; //Reset to the current executing process.
+}
+*/
+
 
 void iProcessKeyboard(){
 

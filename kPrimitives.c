@@ -14,6 +14,7 @@ int Enqueue(struct PCB* ptr,struct nodePCB* Q);
 struct PCB* Dequeue(struct nodePCB* Q);
 struct PCB* SearchPCBDequeue(int searchPID, struct nodePCB* Q);
 struct PCB* ReadyProcessDequeue();
+void add_to_traceBuffer(int PIDsender, int PIDreceiver, int msgType, int traceBuffer);//traceBuffer of 0 will be send, 1 will be receive
 
 ///////////// KPRIMITIVES ///////////////////
 
@@ -119,7 +120,7 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
         {
             receiver->ptrMessageInboxHead = temp;
             receiver->ptrMessageInboxTail = temp;
-	    temp->ptrNextMessage = NULL;
+		    temp->ptrNextMessage = NULL;
         }
         else
         {
@@ -156,9 +157,8 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
             }
         }
 
-        /*
-		store the sender, receiver, and time information of env into trace struct
-	*/
+	//Add sender, receiver, message type information to trace buffer. 
+	add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 0); //Last parameter (0) is to add to send buffer
 	return 0;
 }
 
@@ -233,9 +233,10 @@ struct messageEnvelope* k_receive_message( )
      
     temp = ptrCurrentExecuting->ptrMessageInboxHead;
     ptrCurrentExecuting->ptrMessageInboxHead = ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage;
+	temp->ptrNextMessage = NULL;
+	//Store the sender, receiver, msgType to trace buffer;
+	add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 1); // Last paramater (1) is to add it to receive buffer
     return temp;
-
-   	//store the sender, receiver, and time information of env into trace struct
 
 }
 
@@ -371,7 +372,7 @@ int k_terminate()
 }
 
 int k_get_trace_buffers( struct messageEnvelope * temp){
-	if(temp == NULL)
+	/*if(temp == NULL)
 		return -1;
 	char bufferData[32];
 	int i, j, k;
@@ -386,13 +387,13 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 		}
 	}
 	strcpy(temp->messageText, bufferData); //we have to decide where this gets put into a table format. CRT iprocess?
+	*/
 	return 1;
 }
 			
 /////////////PRIMITIVE HELPER FUNCTIONS //////////////////////
 
 void context_switch(struct PCB* next_PCB){
-
 	int return_code = setjmp(ptrCurrentExecuting->contextBuffer);
 	
 	if(return_code == 0){
@@ -515,14 +516,57 @@ struct PCB* ReadyProcessDequeue(){//Chuy, is there a better way to 'if' this? BR
 	struct PCB* ptr = NULL;
 
 	ptr = Dequeue(ptrPCBReadyHigh);
-	if (ptr != NULL)
+	if (ptr != NULL){
+		ptr->ptrNextPCBQueue = NULL;
 		return ptr;
+	}
 	ptr = Dequeue(ptrPCBReadyMed);
-	if (ptr != NULL)
+	if (ptr != NULL){
+		ptr->ptrNextPCBQueue = NULL;
 		return ptr;
+	}
 	ptr = Dequeue(ptrPCBReadyLow);
-	if (ptr != NULL)
+	if (ptr != NULL){
+		ptr->ptrNextPCBQueue = NULL;
 		return ptr;
+	}
 	ptr = Dequeue(ptrPCBReadyNull);
-		return ptr;
+	ptr->ptrNextPCBQueue = NULL;
+	return ptr;
+}
+
+void add_to_traceBuffer(int PIDSender, int PIDReceiver, int msgType, int traceBufferNumber){
+	printf("\nIn add_to_traceBuffer\n");
+	printf("Adding to tracebuffer: %d\n",traceBufferNumber);
+	printf("Data to be added: %d %d %d\n", PIDSender, PIDReceiver, msgType);
+	
+	if(traceBufferNumber == 0){//Add to send traceBuffer
+		printf("BEFORE Buffer head: %d   Buffer tail: %d\n", (*sendTraceBuffer).head, (*sendTraceBuffer).tail);
+		sendTraceBuffer->data[sendTraceBuffer->tail][0] = PIDSender;
+		sendTraceBuffer->data[sendTraceBuffer->tail][1] = PIDReceiver;
+		sendTraceBuffer->data[sendTraceBuffer->tail][2] = msgType;
+		sendTraceBuffer->data[sendTraceBuffer->tail][3] = traceBufferNumber;
+
+		sendTraceBuffer->tail ++; //Shift tail down now
+		sendTraceBuffer->tail = sendTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
+		if(sendTraceBuffer->head == sendTraceBuffer->tail){ //This will always be the case on a full trace buffer
+			sendTraceBuffer->head ++; //Move head along, since old head was replaced by new entry
+			sendTraceBuffer->head = sendTraceBuffer->head % 16; //If head is outside trace buffer limits, set back to 0.
+		}
+		printf("AFTER Buffer head: %d   Buffer tail: %d\n", sendTraceBuffer->head, sendTraceBuffer->tail);
+	}
+	else{
+
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][0] = PIDSender;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][1] = PIDReceiver;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][2] = msgType;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = traceBufferNumber;
+		receiveTraceBuffer->tail ++; //Shift tail down now
+		receiveTraceBuffer->tail = receiveTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
+		if(receiveTraceBuffer->head == receiveTraceBuffer->tail){ //This will always be the case on a full trace buffer
+			receiveTraceBuffer->head ++; //Move head along, since old head was replaced by new entry
+			receiveTraceBuffer->head = receiveTraceBuffer->head % 16; //If head is outside trace buffer limits, set back to 0.
+		}
+		printf("AFTER Buffer head: %d   Buffer tail: %d\n", receiveTraceBuffer->head, receiveTraceBuffer->tail);
+	}
 }

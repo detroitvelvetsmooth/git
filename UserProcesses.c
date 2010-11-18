@@ -18,7 +18,7 @@ struct messageEnvelope* CDequeue();
 
 void ProcessA(){
 	 printf("Entered Process A\n");
-     struct messageEnvelope* start;
+   struct messageEnvelope* start;
      start = receive_message();
      //Check for start message sent by CCI
      
@@ -48,7 +48,7 @@ void ProcessA(){
 
 void ProcessB(){
 	printf("Entered Process B\n");
-     struct messageEnvelope* BTemp;
+    struct messageEnvelope* BTemp;
      int status;
      //Start infinte loop
      do{
