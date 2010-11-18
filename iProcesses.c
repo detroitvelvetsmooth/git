@@ -34,12 +34,12 @@ struct messageEnvelope* TimingListDequeue(){
 } 
 
 int TimingListEnqueue(struct messageEnvelope* env){
-
+	
     if (env != NULL){
-   
-        if(ptrTimingList == NULL){//case 1: TimingQueue is empty
+   			if(ptrTimingList == NULL){//case 1: TimingQueue is empty
             ptrTimingList = env;
             env->ptrNextMessage = NULL;
+            return 1;
             }
        
         struct messageEnvelope* temporary = NULL;
@@ -75,24 +75,24 @@ void iProcessAlarm(){
     relativeTime++;
    
     struct messageEnvelope* env = NULL;
-    env = k_receive_message();
-
-    while(env != NULL){//if sleep request appears
-       
-        //    there is a new request. Insertion Sort the messages into the message envelope queue.
-       
-        TimingListEnqueue(env);//still gotta make this funtion.. does it iterate through global PCB ptr
-        env = k_receive_message();
-        //What does it do with the env?
-    }
-
+    
    
+		do{
+		env = k_receive_message();
+		if(env != NULL){//if sleep request appears
+           TimingListEnqueue(env);
+     
+     }
+    
+   }while(env!= NULL);
+   
+    
     if (ptrTimingList != NULL){
         ptrTimingList->sleepTicks --;
-
-        while (ptrTimingList->sleepTicks == 0){//what if two are 0? do-while?
+				//printf("WallClock sleepTicks: %d\n", ptrTimingList->sleepTicks);
+        while (ptrTimingList!=NULL && ptrTimingList->sleepTicks == 0){//what if two are 0? do-while?
             env = TimingListDequeue();//returns env ptr
-            env->messageType = MSGTYPEWAKEUP;//enumerated?
+            env->messageType = MSGTYPEWAKEUP;
             k_send_message(env->PIDSender,env);
         }
     }   
@@ -113,7 +113,7 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 	
 		env = k_receive_message();//primitive name
 	
-		printf("iProcessCRT forwarding msg to UNIXcrt: %s\n", env->messageText);
+		//printf("iProcessCRT forwarding msg to UNIXcrt: %s\n", env->messageText);
 	
 		if (env != NULL){ //which it should always be the case
 		    

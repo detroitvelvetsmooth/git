@@ -19,7 +19,7 @@
 #define MAXCHAR 80	 // specifies the buffer length for the shared memory.
 
 #define alarmDelayTime 	900000 //delays 10 seconds
-#define alarmFrequency  900000  // set the frequency of the signal to 100 ms. It is a #define since these will not change at all.
+#define alarmFrequency  100000  // set the frequency of the signal to 100 ms. It is a #define since these will not change at all.
 
 #define numProcesses 6 //SPECIFIES NUMBER OF PROCESSES THAT REQUIRE CONTEXT INITIALIZATION (all minus iprocess)
 #define numProcessesTotal 9
@@ -42,6 +42,7 @@
 #define MSGTYPEWAKEUP 3
 #define MSGCONSOLEINPUT 4
 #define MSGBLANK 5
+#define MSGREQUESTDELAY 6
 
 #define PIDUserProcessA 0
 #define PIDUserProcessB 1

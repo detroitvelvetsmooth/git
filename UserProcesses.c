@@ -118,7 +118,7 @@ void ProcessC(){
 void NullProcess(){
 //Infinite Loop
      do{
-     		printf("....I'm the null process...\n");
+     		//printf("....I'm the null process...\n");
      		sleep(2);
            release_processor();
      }while(1);
@@ -184,13 +184,20 @@ void CCI()
 			sscanf(temp->messageText, "%c %d:%d:%d", &tempChar, &hour, &min, &sec); //needs to check if correct number of items passed
 			if(hour < 0 || hour >=24 || min < 0 || min >=60 || sec < 0 || sec >= 60)
 			{
+			
 				strcpy(temp->messageText, "Illegal Time Entered\0");
 				send_console_chars(temp);
 				temp = receive_message();
 			}
 			else
 			{
-				relativeTime = hour*3600+min*60+sec; //Sets the relative time. 
+			
+				relativeTime = (hour*3600+min*60+sec)*10; //Sets the relative time. 
+					printf("Relative Time : %d\n", relativeTime);
+				printf("hour Time : %d\n", hour);
+				printf("min Time : %d\n", min);
+				printf("second Time : %d\n", sec);
+				
 			}
 		}
 		else if(strcmp(temp->messageText, "b\0")==0)
@@ -226,14 +233,13 @@ void CCI()
 }
 
 void WallClock(){
-     struct messageEnvelope* temp;
+     struct messageEnvelope* temp;//temp is out temporary time env
      temp = request_message_env();
      int math, hour, min, sec;
      char time[10];
      do
-     {  printf("Wall Clock Entered Main Loop\n");
+     { 
     	if(displayWallClock == 1){
-                            printf("Wall Clock Entered\n");
         temp->messageType = MSGTYPEDATA;                    
         math = relativeTime/10;
         hour = (math/3600)%24;
@@ -244,12 +250,11 @@ void WallClock(){
         strcpy(temp->messageText,time);
         send_console_chars(temp);
         temp = receive_message();
-        temp->messageType = MSGTYPEWAKEUP;  
+        //temp->messageType = MSGTYPEWAKEUP;  
         request_delay(10, temp);
         temp = receive_message();
-        
         }
-        
+                
       release_processor();
      }while(1);
 }

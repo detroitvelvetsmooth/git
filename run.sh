@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo Start Removing... 
-rm ./primitiveRTX.o ./UNIXcrt.o ./UNIXkbd.o ./dummyKeyboardFile ./dummyCRTFile
+rm ./primitiveRTX.o ./UNIXcrt.o ./UNIXkbd.o 
 echo ...Done Removing.
 
 echo Start Compiling...

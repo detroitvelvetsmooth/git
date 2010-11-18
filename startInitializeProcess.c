@@ -42,7 +42,7 @@ processType[3] = READY;
 processProgramCounter[3] =CCI;
 
 processPID[4] = PIDNullProcess;
-processPriority[4] = MED_PRIORITY; //TODO CHANGE BACK TO NULL PROCESS
+processPriority[4] = LOW_PRIORITY; //TODO CHANGE BACK TO NULL PROCESS
 processType[4] = READY;
 processProgramCounter[4] =NullProcess; 
 

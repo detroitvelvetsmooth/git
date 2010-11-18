@@ -107,12 +107,13 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
 
 	struct PCB *receiver;
         receiver = getPCB(dest_process_id);
-        
-                printf("\nk_send_message: Receiver PID : %s\n", debugProcessName(receiver->PID));
+        /*
+        printf("\nk_send_message: Receiver PID : %s\n", debugProcessName(receiver->PID));
 				printf("k_send_message: Sender: %s\n", debugProcessName(temp->PIDSender));
 				printf("k_send_message: Receiver: %s\n", debugProcessName(temp->PIDReceiver));
 				printf("k_send_message: Contents: %s\n", temp->messageText);
 				printf("k_send_message: MessageType: %s\n\n", debugMessageType(temp->messageType));
+				*/
 
         if(receiver->ptrMessageInboxHead == NULL) //Empty Inbox
         {
@@ -128,7 +129,6 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
         }
         struct PCB* tempPCB;
         if(receiver->PCBState == BLOCKED_MSG_RECEIVE || (receiver->PCBState == BLOCKED_SLEEPING && temp->messageType == MSGTYPEWAKEUP)){
-        
         //Note: BLOCKED_SLEEPING and BLOCKED_MSG_RECEIVE both reside in the ptrPCBBlockedReceive Q)
             tempPCB = SearchPCBDequeue(receiver->PID, ptrPCBBlockedReceive);
             if (tempPCB == NULL){
@@ -163,49 +163,52 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
 }
 
 struct messageEnvelope* k_receive_message( )
-{
-       struct PCB* temp =NULL;
-        printf("\n**********Queues********\n"); 
-    	 temp =	ptrPCBReadyHigh->queueHead;
-      	 while(temp !=NULL)
+{/*
+       struct PCB* debug =NULL;
+        printf("\n**********Current********\n");
+       printf("Curent Exeucting : %s\n",debugProcessName(ptrCurrentExecuting->PID));
+       
+        printf("**********Queues********\n"); 
+    	 debug =	ptrPCBReadyHigh->queueHead;
+      	 while(debug !=NULL)
        	{
-   		printf("PID HIGH: %s\n",debugProcessName( temp->PID)); 
-   		temp = temp->ptrNextPCBQueue;
+   		printf("PID HIGH: %s\n",debugProcessName( debug->PID)); 
+   		debug = debug->ptrNextPCBQueue;
      	}
-     	 temp =	ptrPCBReadyMed->queueHead;
-      	 while(temp !=NULL)
+     	 debug =	ptrPCBReadyMed->queueHead;
+      	 while(debug !=NULL)
        	{
-   		printf("PID MED: %s\n",debugProcessName( temp->PID)); 
-   		temp = temp->ptrNextPCBQueue;
+   		printf("PID MED: %s\n",debugProcessName( debug->PID)); 
+   		debug = debug->ptrNextPCBQueue;
      	}
-     	 temp =	ptrPCBReadyLow->queueHead;
-      	 while(temp !=NULL)
+     	 debug =	ptrPCBReadyLow->queueHead;
+      	 while(debug !=NULL)
        	{
-   		printf("PID LOW: %s\n",debugProcessName( temp->PID)); 
-   		temp = temp->ptrNextPCBQueue;
+   		printf("PID LOW: %s\n",debugProcessName( debug->PID)); 
+   		debug = debug->ptrNextPCBQueue;
      	}
-     	 temp =	ptrPCBReadyNull->queueHead;
-      	 while(temp !=NULL)
+     	 debug =	ptrPCBReadyNull->queueHead;
+      	 while(debug !=NULL)
        	{
-   		printf("PID NULL: %s\n",debugProcessName( temp->PID)); 
-   		temp = temp->ptrNextPCBQueue;
+   		printf("PID NULL: %s\n",debugProcessName( debug->PID)); 
+   		debug = debug->ptrNextPCBQueue;
      	}
      	
      	
      	printf("***********BLOCKED****************\n");
-         temp =	ptrPCBBlockedReceive->queueHead;
-      	 while(temp !=NULL)
+         debug =	ptrPCBBlockedReceive->queueHead;
+      	 while(debug !=NULL)
        	{
-   		printf("PID BLOCKED: %s\n",debugProcessName( temp->PID)); 
-   		temp = temp->ptrNextPCBQueue;
+   		printf("PID BLOCKED: %s\n",debugProcessName( debug->PID)); 
+   		debug = debug->ptrNextPCBQueue;
      	}
      	if(ptrPCBBlockedReceive->queueTail!=NULL)
      	printf("Tail Blocked: %s\n", debugProcessName(ptrPCBBlockedReceive->queueTail->PID));
      	printf("***************************\n");
    	
    	
-	printf("k_receive_Message: Receiving Process : %s\n", debugProcessName(ptrCurrentExecuting->PID));
-  // struct messageEnvelope *temp; UNCOMMENT THIS FUCKING LINE.
+	*///printf("k_receive_Message: Receiving Process : %s\n", debugProcessName(ptrCurrentExecuting->PID));
+   struct messageEnvelope *temp; 
    while(ptrCurrentExecuting->ptrMessageInboxHead == NULL)
    {
        if(ptrCurrentExecuting->PCBState == IPROCESS) //Iprocesses don't block
@@ -213,7 +216,7 @@ struct messageEnvelope* k_receive_message( )
                //printf("k_receive_message: Following process was not Blocked: %s\n",debugProcessName(ptrCurrentExecuting->PID));
                return NULL;
            }
-       printf("k_receive_message: Following process to be placed on Blocked Queue: %s\n",debugProcessName(ptrCurrentExecuting->PID));
+     //  printf("k_receive_message: Following process to be placed on Blocked Queue: %s\n",debugProcessName(ptrCurrentExecuting->PID));
        if(ptrCurrentExecuting->PCBState != BLOCKED_SLEEPING) //IF IT HAS BEEN SLEEPING YOU DON'T WANT TO OVERWRITE THE STATE. 
        ptrCurrentExecuting->PCBState = BLOCKED_MSG_RECEIVE; //Change state
        
@@ -351,7 +354,7 @@ int  k_request_delay( int delay, struct messageEnvelope * temp )// TODO THIS FUN
      if(temp == NULL)
         return -1;
         
-    temp->messageType = MSGTYPEWAKEUP;
+    temp->messageType = MSGREQUESTDELAY;
     temp->sleepTicks = delay;
     ptrCurrentExecuting->PCBState = BLOCKED_SLEEPING; //changes the state to sleeping
 	
@@ -439,19 +442,15 @@ struct PCB * getPCB(int findPID)
 }
 
 int Enqueue(struct PCB* ptr,struct nodePCB* Q){//general enqueue function
-    
     ptr->ptrNextPCBQueue = NULL;
-    
-    if(Q == NULL)
-         return -1;
-	if(Q->queueHead == NULL){//Queue empty case
+   	if(Q->queueHead == NULL){//Queue empty case
 		Q->queueHead = ptr;
 		Q->queueTail = ptr;
-	}
+}
 	else{
-	     
+	    
 	     Q->queueTail->ptrNextPCBQueue = ptr;
-         Q->queueTail = ptr;
+       Q->queueTail = ptr;
     }
 	return 1;
 }

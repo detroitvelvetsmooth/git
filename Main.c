@@ -74,7 +74,7 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 	
 		
 		signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
-	   // ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
+	   ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
 	
     	ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
   	    initializeProcessReadyQueue();
@@ -231,7 +231,7 @@ printf("\nHousekeeping...Cleanup\n");
 	
 	int status = munmap(keyboardmmap_ptr, bufferSize);
     if (status == -1){
-      printf("Bad munmap during cleanup\n");
+      printf("Bad munmap during cleanup Keyboard\n");
     }
 	// close the temporary mmap file
     status = close(keyboardFileIdentifier);
@@ -249,7 +249,7 @@ printf("\nHousekeeping...Cleanup\n");
 
     status = munmap(CRTmmap_ptr, bufferSize);
     if (status == -1){
-      printf("Bad munmap during cleanup\n");
+      printf("Bad munmap during cleanup CRT\n");
     }
 	// close the temporary mmap file
     status = close(CRTFileIdentifier);
@@ -317,6 +317,9 @@ char* debugMessageType(int Type)
      
      else if(Type == MSGBLANK)
      strcpy(msg, "MSGBLANK\0");
+     
+     else if(Type == MSGREQUESTDELAY)
+     strcpy(msg, "MSGREQUESTDELAY\0");
      
      return msg;
 }
