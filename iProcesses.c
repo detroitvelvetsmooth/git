@@ -14,36 +14,37 @@ struct messageEnvelope* TimingListDequeue(){
 int TimingListEnqueue(struct messageEnvelope* env){
 	
     if (env != NULL){
-   			if(ptrTimingList == NULL){//case 1: TimingQueue is empty
-            ptrTimingList = env;
-            env->ptrNextMessage = NULL;
-            return 1;
-            }
+		if(ptrTimingList == NULL){//case 1: TimingQueue is empty
+			ptrTimingList = env;
+			env->ptrNextMessage = NULL;
+			return 1;
+        }
        
-        struct messageEnvelope* temporary = NULL;
-        temporary = ptrTimingList; //TEMPORARY POINTS TO THE FRONT OF THE LIST.
-   
-   
-        if (env->sleepTicks < temporary->sleepTicks){//case 2:insertion to front of list
-            ptrTimingList = env;
-            env->ptrNextMessage = temporary;
-            temporary->sleepTicks = temporary->sleepTicks - env->sleepTicks;
-            return 1;
-        }
-   
-        env->sleepTicks = env->sleepTicks - temporary->sleepTicks;
-   
-        while (env->sleepTicks >= temporary->ptrNextMessage->sleepTicks && temporary->ptrNextMessage != NULL){//case 3: general insertion
-            env->sleepTicks = env->sleepTicks - temporary->ptrNextMessage->sleepTicks;
-            temporary = temporary->ptrNextMessage;
-        }
-            env->ptrNextMessage = temporary->ptrNextMessage;
-            temporary->ptrNextMessage = env;
-            if (env->ptrNextMessage)
-                env->ptrNextMessage->sleepTicks = env->ptrNextMessage->sleepTicks - env->sleepTicks;
-            return 1;
-        }
-        return 0;//case 5: if env is NULL
+    struct messageEnvelope* temporary = NULL;
+    temporary = ptrTimingList; //TEMPORARY POINTS TO THE FRONT OF THE LIST.
+      
+    if (env->sleepTicks < temporary->sleepTicks){//case 2:insertion to front of list
+        ptrTimingList = env;
+        env->ptrNextMessage = temporary;
+        temporary->sleepTicks = temporary->sleepTicks - env->sleepTicks;
+        return 1;
+    }
+
+    env->sleepTicks = env->sleepTicks - temporary->sleepTicks;
+
+    while (temporary->ptrNextMessage != NULL){//Case 3: general insertion. Loop through till empty.
+        if(env->sleepTicks >= temporary->ptrNextMessage->sleepTicks) //Or exit if position found
+			break;
+		env->sleepTicks = env->sleepTicks - temporary->ptrNextMessage->sleepTicks;
+        temporary = temporary->ptrNextMessage;
+    }
+        env->ptrNextMessage = temporary->ptrNextMessage;
+        temporary->ptrNextMessage = env;
+        if (env->ptrNextMessage)
+            env->ptrNextMessage->sleepTicks = env->ptrNextMessage->sleepTicks - env->sleepTicks;
+        return 1;
+    }
+    return 0;//case 5: if env is NULL
     }
     
 void iProcessAlarm(){
@@ -53,18 +54,14 @@ void iProcessAlarm(){
     relativeTime++;
    
     struct messageEnvelope* env = NULL;
-    
-   
-		do{
+       
+	do{
 		env = k_receive_message();
 		if(env != NULL){//if sleep request appears
-           TimingListEnqueue(env);
-     
-     }
-    
-   }while(env!= NULL);
-   
-    
+			TimingListEnqueue(env);
+		} 
+	}while(env!= NULL);
+       
     if (ptrTimingList != NULL){
         ptrTimingList->sleepTicks --;
 				//printf("WallClock sleepTicks: %d\n", ptrTimingList->sleepTicks);
@@ -109,7 +106,8 @@ void iProcessCRT(){
 }
 
 
-/*void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
+/*
+void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 
 	//Change current executing pcb to iProcessCRT's PCB
 	struct PCB * temp = ptrCurrentExecuting; 

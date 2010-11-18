@@ -536,12 +536,7 @@ struct PCB* ReadyProcessDequeue(){//Chuy, is there a better way to 'if' this? BR
 }
 
 void add_to_traceBuffer(int PIDSender, int PIDReceiver, int msgType, int traceBufferNumber){
-	printf("\nIn add_to_traceBuffer\n");
-	printf("Adding to tracebuffer: %d\n",traceBufferNumber);
-	printf("Data to be added: %d %d %d\n", PIDSender, PIDReceiver, msgType);
-	
 	if(traceBufferNumber == 0){//Add to send traceBuffer
-		printf("BEFORE Buffer head: %d   Buffer tail: %d\n", (*sendTraceBuffer).head, (*sendTraceBuffer).tail);
 		sendTraceBuffer->data[sendTraceBuffer->tail][0] = PIDSender;
 		sendTraceBuffer->data[sendTraceBuffer->tail][1] = PIDReceiver;
 		sendTraceBuffer->data[sendTraceBuffer->tail][2] = msgType;
@@ -553,7 +548,6 @@ void add_to_traceBuffer(int PIDSender, int PIDReceiver, int msgType, int traceBu
 			sendTraceBuffer->head ++; //Move head along, since old head was replaced by new entry
 			sendTraceBuffer->head = sendTraceBuffer->head % 16; //If head is outside trace buffer limits, set back to 0.
 		}
-		printf("AFTER Buffer head: %d   Buffer tail: %d\n", sendTraceBuffer->head, sendTraceBuffer->tail);
 	}
 	else{
 
@@ -567,6 +561,5 @@ void add_to_traceBuffer(int PIDSender, int PIDReceiver, int msgType, int traceBu
 			receiveTraceBuffer->head ++; //Move head along, since old head was replaced by new entry
 			receiveTraceBuffer->head = receiveTraceBuffer->head % 16; //If head is outside trace buffer limits, set back to 0.
 		}
-		printf("AFTER Buffer head: %d   Buffer tail: %d\n", receiveTraceBuffer->head, receiveTraceBuffer->tail);
 	}
 }
