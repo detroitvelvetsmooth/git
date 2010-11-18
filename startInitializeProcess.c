@@ -200,9 +200,8 @@ void initializeProcessContext(){
 						longjmp(kernel_buf,1);
 			}
 			else{
-				
-/*				printf("initializeProcessContext: Process to Start for First Time: %s\n", debugProcessName(ptrCurrentExecuting->PID)); //prints the pcb of the process about to be executed.*/
-				ptrCurrentExecuting->programCounter(); //executes for the first time.
+
+                ptrCurrentExecuting->programCounter(); //executes for the first time.
 			    printf("initializeProcessContext: Process failed to execute correctly or never called a context switch\n");
 			
 			}

@@ -108,6 +108,41 @@ void iProcessCRT(){
   ptrCurrentExecuting = temp;
 }
 
+
+/*void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
+
+	//Change current executing pcb to iProcessCRT's PCB
+	struct PCB * temp = ptrCurrentExecuting; 
+	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
+
+	static struct messageEnvelope* outputMsg = NULL; //outputMsg will need to be stored for future use
+
+	if(outputMsg == NULL){ //The iProcessCRT is not fulfilling another message output at this moment.
+		outputMsg = k_receive_message();
+		if(outputMsg == NULL){
+		}
+		else{
+			strcpy((*CRTSharedMemPointer).data, outputMsg->messageText);
+			(*CRTSharedMemPointer).completedFlag = 1;
+		}
+	}
+	else if((*CRTSharedMemPointer).completedFlag == 1){//The iProcessCRT is fulfilling another message output at this moment.
+		//DO NOTHING
+	}
+	else{//The UNIXCRT has signalled the RTX to let it know it has emptied and printed the buffer.
+		outputMsg->messageType = MSGTYPEACK;
+		k_send_message(outputMsg->PIDSender, outputMsg); //Send aknowledgement message to the process with the fulfilled request
+		outputMsg = k_receive_message(); //Check if there are more messages to be outputed.
+		if (outputMsg != NULL){ //If there are, copy to buffer.
+			strcpy((*CRTSharedMemPointer).data, outputMsg->messageText);
+			(*CRTSharedMemPointer).completedFlag = 1;
+		}
+	}
+	ptrCurrentExecuting = temp; //Reset to the current executing process.
+}
+*/
+
+
 void iProcessKeyboard(){
 
 	struct PCB * temp = ptrCurrentExecuting; 

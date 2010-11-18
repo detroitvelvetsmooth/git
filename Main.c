@@ -20,13 +20,6 @@ displayWallClock= 0;
 atomic_count = 0;
 ptrTimingList=NULL; // pointer to messages that have the timing countdown. 
 
-//////////////// TRACE BUFFERS /////////////////////
-
-receiveTraceBufferIndexHead = 0; 
-receiveTraceBufferIndexTail = 0;
-
-sendTraceBufferIndexHead = 0;
-sendTraceBufferIndexTail = 0;
 
 ///////////// GENERAL PCB LIST /////////////////////////
 
@@ -64,6 +57,17 @@ ptrPCBBlockedAllocate = (struct nodePCB*) malloc(sizeof(struct nodePCB));
 (*ptrPCBBlockedAllocate).queueTail= NULL;
 
 ptrTimingList = NULL;
+
+////////////////// TRACE BUFFERS /////////////////////////////
+sendTraceBuffer = (struct traceBuffer*) malloc(sizeof(struct traceBuffer));
+
+(*sendTraceBuffer).head = 0;
+(*sendTraceBuffer).tail = 0;
+
+receiveTraceBuffer = (struct traceBuffer*) malloc(sizeof(struct traceBuffer));
+
+(*receiveTraceBuffer).head = 0;
+(*receiveTraceBuffer).tail = 0;
 
 ////////////////// MESSAGE ENVELOPES /////////////////////////
 
