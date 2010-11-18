@@ -77,40 +77,9 @@ void iProcessAlarm(){
 
 }
 
-void iProcessCRT(){ 
-atomic(1);
-	struct PCB * temp = ptrCurrentExecuting; 
-	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
-
+	void iProcessCRT(){ 
 	
-
-	if((*CRTSharedMemPointer).completedFlag == 0){//Indicates CRT has completed copying. Means empty buffer.
-		struct messageEnvelope* env = NULL;
-	
-		env = k_receive_message();//primitive name
-	
-		//printf("iProcessCRT forwarding msg to UNIXcrt: %s\n", env->messageText);
-	
-		if (env != NULL){ //which it should always be the case
-		    
-		    strcpy((*CRTSharedMemPointer).data, env->messageText);//Copies the contents of env->data to buffer
-	      env->messageType = MSGTYPEACK;
-	      (*CRTSharedMemPointer).completedFlag = 1; //Indicate to UNIXCRT that buffer is loaded
-	      while((*CRTSharedMemPointer).completedFlag == 1);
-          k_send_message(env->PIDSender,env);
-	  }
-	  
-   }
-  
-  
-  ptrCurrentExecuting = temp;
-atomic(0);
-}
-
-
-/*
-void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
-atomic(1);
+	atomic(1);
 	//Change current executing pcb to iProcessCRT's PCB
 	struct PCB * temp = ptrCurrentExecuting; 
 	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
@@ -127,7 +96,6 @@ atomic(1);
 		}
 	}
 	else if((*CRTSharedMemPointer).completedFlag == 1){//The iProcessCRT is fulfilling another message output at this moment.
-		//DO NOTHING
 	}
 	else{//The UNIXCRT has signalled the RTX to let it know it has emptied and printed the buffer.
 		outputMsg->messageType = MSGTYPEACK;
@@ -141,7 +109,7 @@ atomic(1);
 	ptrCurrentExecuting = temp; //Reset to the current executing process.
 atomic(0);
 }
-*/
+
 
 
 void iProcessKeyboard(){

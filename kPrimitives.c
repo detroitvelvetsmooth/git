@@ -312,13 +312,14 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
 }
 
 int  k_change_priority(int new_priority, int targetID){
-	
     if (!(targetID == PIDUserProcessA || targetID == PIDUserProcessB || targetID == PIDUserProcessC
 		|| targetID == PIDcci || targetID == PIDNullProcess || targetID == PIDiProcessKeyboard || targetID == PIDWallClock
 		|| targetID == PIDiProcessCRT || targetID == PIDiProcessTimer || new_priority == HIGH_PRIORITY
 		||new_priority == MED_PRIORITY || new_priority == LOW_PRIORITY || new_priority == NULL_PRIORITY))
 		return -1;
-	
+	if (targetID == PIDNullProcess){ //Not allowed to change NullProcess PID
+		return 0;
+	}
     struct PCB *temp;
     temp = getPCB(targetID);
     //Since PCB is in a ready Q it must be changed immediately.
