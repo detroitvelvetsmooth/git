@@ -23,10 +23,10 @@ void ProcessA(){
      //Check for start message sent by CCI
      
 	 while(strcmp(start->messageText, "s\0")!=0){
-        printf("\nNOT THE RIGHT STUFF\n");
+	 	release_message_env(start);
         start = receive_message();
 	 }
-     printf("\nStart command received. Starting Process A\n");
+/*     printf("\nStart command received. Starting Process A\n");*/
      release_message_env(start);
      int count, status;
      count = 0;
@@ -81,7 +81,10 @@ void ProcessC(){
         if (CEnv->messageType == MSGTYPECOUNT){
             //If message content is devisable by 20 then continue.
             sscanf(CEnv->messageText, "%d", &count); //TURNS FROM A CHARACTER ARRAY TO AN INTEGER.
-            if ((count%20) == 0){ // means it is divisible.
+            
+            //we don't want to display the very first one
+            
+            if ((count%20) == 0&&count!=NULL){ // means it is divisible.
                strcpy(CEnv->messageText, "Process C\0");
                
                status = send_console_chars(CEnv);

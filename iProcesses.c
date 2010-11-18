@@ -48,6 +48,7 @@ int TimingListEnqueue(struct messageEnvelope* env){
     }
     
 void iProcessAlarm(){
+    atomic(1);
     struct PCB* temp = ptrCurrentExecuting;
     ptrCurrentExecuting = getPCB(PIDiProcessTimer);
     absoluteTime++;
@@ -72,12 +73,12 @@ void iProcessAlarm(){
         }
     }   
     ptrCurrentExecuting = temp;
-   
+   atomic(0);
 
 }
 
 void iProcessCRT(){ 
-
+atomic(1);
 	struct PCB * temp = ptrCurrentExecuting; 
 	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
 
@@ -103,12 +104,13 @@ void iProcessCRT(){
   
   
   ptrCurrentExecuting = temp;
+atomic(0);
 }
 
 
 /*
 void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
-
+atomic(1);
 	//Change current executing pcb to iProcessCRT's PCB
 	struct PCB * temp = ptrCurrentExecuting; 
 	ptrCurrentExecuting = getPCB(PIDiProcessCRT);
@@ -137,12 +139,13 @@ void iProcessCRT(){ //THIS FUNCTION IS IN A NON WORKING STATE TODO.
 		}
 	}
 	ptrCurrentExecuting = temp; //Reset to the current executing process.
+atomic(0);
 }
 */
 
 
 void iProcessKeyboard(){
-
+	atomic(1);
 	struct PCB * temp = ptrCurrentExecuting; 
 	ptrCurrentExecuting = getPCB(PIDiProcessKeyboard);
 	
@@ -166,6 +169,7 @@ void iProcessKeyboard(){
 			k_release_message_env(env);//if mem not ready, ignore env; will never happen (SINCE COMPUTERS ARE FAAAAST)
 	}
 	  ptrCurrentExecuting = temp;
+	atomic(0);
 }
 
 

@@ -2,7 +2,7 @@
 
 //Struct.h is used to obtain the structure of the message envelopes.
 
-#define totalMessages 128
+#define totalMessages 20
 // we define the total amount of messsages to be used in the system.
 //This method will allocate space for the message envelopes and then link them together and set the head and tail pointers accordingly.
 //remember for the pointers we have to use *ptr = whatever not ptr = &whatever
