@@ -284,21 +284,34 @@ int  k_release_processor( )
 int  k_request_process_status(struct messageEnvelope * temp )
 {
     if(temp == NULL)
-        return 0;
-    int i;
-    int j;
-    int k=0;
-    int PCBstatus[numProcessesTotal][3]; //Make global variable #ofProcesses to replace '8'???
+        return -1;
+    //int i;
+    //int j;
+    //int k=0;
+	int PID, Pri, State;
+    //int PCBstatus[numProcessesTotal][3]; //Make global variable #ofProcesses to replace '8'???
+	char ps[80];
+	strcpy(ps, "PID Pri State\n");
     struct PCB *process;
     process = ptrPCBList;
     while(process->ptrNextPCBList != NULL)
     {
+		char tempPS[6];
+		PID = process->PID;
+		Pri = process->processPriority;
+		State = process->PCBState;
+		sprintf(tempPS, "%d %d %d/n", PID, Pri, State);
+		strcat(ps, tempPS);
+		/*
         PCBstatus[i][0] = process->PID;
         PCBstatus[i][1] = process->PCBState;
         PCBstatus[i][2] = process->processPriority;
         i++;
+		*/
         process = process->ptrNextPCBList;
     }
+	strcpy(temp->messageText, ps);
+	/*
     for(i=0; i<8; i++)
     {
         for(j=0; j<3; j++)
@@ -307,6 +320,7 @@ int  k_request_process_status(struct messageEnvelope * temp )
             k++;
         }
     }
+	 */
     return 1;
 }
 
