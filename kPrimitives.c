@@ -281,57 +281,43 @@ int  k_release_processor( )
 	return 1;
 }
 
-int  k_request_process_status(struct messageEnvelope * temp )
+struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp ) //THIS FUNCTION WILL GATHER THE LIST OF PCBS AND PRINT THEIR PRIORITY, THEIR STATUS AND THEIR PID. 
 {
     if(temp == NULL)
-        return -1;
-    //int i;
-    //int j;
-    //int k=0;
-	int PID, Pri, State;
-    //int PCBstatus[numProcessesTotal][3]; //Make global variable #ofProcesses to replace '8'???
-	char ps[80];
-	strcpy(ps, "PID Pri State\n");
-    struct PCB *process;
-    process = ptrPCBList;
-    while(process->ptrNextPCBList != NULL)
+        return NULL;
+
+	int PID, Priority, State;
+	char ps[80]; //the string to be populated
+
+    strcpy(ps, "\nPID\tPri\tState\n"); //MAKES THE HEADERS FOR THE COLUMNS.
+    
+    struct PCB *process; //temporary PCB that loops through
+    process = ptrPCBList; //initializes loop pointing to the first PCB
+
+    while(process != NULL)
     {
-		char tempPS[6];
+		char tempPS[6]; //I DON'T KNOW IF THIS SIZE IS RIGHT. EITHER WAY IT WILL BE RESIZED BY SPRINTF. 
 		PID = process->PID;
-		Pri = process->processPriority;
+		Priority = process->processPriority;
 		State = process->PCBState;
-		sprintf(tempPS, "%d %d %d/n", PID, Pri, State);
+		sprintf(tempPS, "%d\t%d\t%d\n", PID, Priority, State);
 		strcat(ps, tempPS);
-		/*
-        PCBstatus[i][0] = process->PID;
-        PCBstatus[i][1] = process->PCBState;
-        PCBstatus[i][2] = process->processPriority;
-        i++;
-		*/
-        process = process->ptrNextPCBList;
+		
+      	  process = process->ptrNextPCBList;
     }
-	strcpy(temp->messageText, ps);
-	/*
-    for(i=0; i<8; i++)
-    {
-        for(j=0; j<3; j++)
-        {
-            temp->messageText[k] = PCBstatus[i][j];
-            k++;
-        }
-    }
-	 */
-    return 1;
+	strcpy(temp->messageText, ps); //TODO - WARNING. strcpy may resize our messageText if ps is too long.
+
+   return temp;		//RETURNS THE MESSAGE WITH THE POPULATED DATA.
 }
 
 int  k_change_priority(int new_priority, int targetID){
-	printf("\n START OF CHANGE_PRIORITY\n");
+	
     if (!(targetID == PIDUserProcessA || targetID == PIDUserProcessB || targetID == PIDUserProcessC
 		|| targetID == PIDcci || targetID == PIDNullProcess || targetID == PIDiProcessKeyboard || targetID == PIDWallClock
 		|| targetID == PIDiProcessCRT || targetID == PIDiProcessTimer || new_priority == HIGH_PRIORITY
 		||new_priority == MED_PRIORITY || new_priority == LOW_PRIORITY || new_priority == NULL_PRIORITY))
 		return -1;
-	printf("\n WE GOT IN CHANGE_PRIORITY\n");
+	
     struct PCB *temp;
     temp = getPCB(targetID);
     //Since PCB is in a ready Q it must be changed immediately.

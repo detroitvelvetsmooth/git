@@ -118,7 +118,7 @@ void NullProcess(){
 //Infinite Loop
      do{
 
-		 printf("....I'm the null process...and my priority:%d\n", ptrCurrentExecuting->processPriority);
+	//	 printf("....I'm the null process...and my priority:%d\n", ptrCurrentExecuting->processPriority);
 
      		sleep(2);
            release_processor();
@@ -160,15 +160,15 @@ void CCI()
 		}
 		else if(strcmp(temp->messageText, "s\0")==0)
 		{    
-            struct messageEnvelope * messageForProcess = NULL;
-            messageForProcess = request_message_env();
+           	 struct messageEnvelope * messageForProcess = NULL;
+            		messageForProcess = request_message_env();
 			strcpy(messageForProcess->messageText,temp->messageText);
 			send_message((int)(PIDUserProcessA), messageForProcess);
 			release_processor(); 
 		}
 		else if(strcmp(temp->messageText, "ps\0")==0)
 		{
-			request_process_status(temp);
+			temp = request_process_status(temp);
 			send_console_chars(temp); //we need to figure out where the status info get put into a table format. Here??
 			temp = receive_message();
 		}
