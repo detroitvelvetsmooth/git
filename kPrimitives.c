@@ -104,6 +104,7 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
 
 	temp->PIDSender = ptrCurrentExecuting->PID;
 	temp->PIDReceiver = dest_process_id;
+	sprintf(temp->messageTimeStamp, "%d", absoluteTime);
 
 
 	struct PCB *receiver;
@@ -158,7 +159,8 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
         }
 
 	//Add sender, receiver, message type information to trace buffer. 
-	add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 0); //Last parameter (0) is to add to send buffer
+	//add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 0); //Last parameter (0) is to add to send buffer
+	add_to_traceBuffer(temp);
 	return 0;
 }
 
@@ -235,8 +237,9 @@ struct messageEnvelope* k_receive_message( )
     ptrCurrentExecuting->ptrMessageInboxHead = ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage;
 	temp->ptrNextMessage = NULL;
 	//Store the sender, receiver, msgType to trace buffer;
-	add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 1); // Last paramater (1) is to add it to receive buffer
-    return temp;
+	//add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 1); // Last paramater (1) is to add it to receive buffer
+	add_to_traceBuffer(temp);
+	return temp;
 
 }
 
@@ -282,10 +285,10 @@ int  k_release_processor( )
 	return 1;
 }
 
-int  k_request_process_status(struct messageEnvelope * temp ) //THIS FUNCTION WILL GATHER THE LIST OF PCBS AND PRINT THEIR PRIORITY, THEIR STATUS AND THEIR PID. 
+struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp ) //THIS FUNCTION WILL GATHER THE LIST OF PCBS AND PRINT THEIR PRIORITY, THEIR STATUS AND THEIR PID. 
 {
     if(temp == NULL)
-        return -1;
+        return NULL;
 
 	int PID, Priority, State;
 	char ps[80]; //the string to be populated
@@ -308,32 +311,17 @@ int  k_request_process_status(struct messageEnvelope * temp ) //THIS FUNCTION WI
     }
 	strcpy(temp->messageText, ps); //TODO - WARNING. strcpy may resize our messageText if ps is too long.
 
-   return -1;		//RETURNS THE MESSAGE WITH THE POPULATED DATA.
+   return temp;		//RETURNS THE MESSAGE WITH THE POPULATED DATA.
 }
 
 int  k_change_priority(int new_priority, int targetID){
-
-    if (!(targetID == PIDUserProcessA 
-       ||targetID == PIDUserProcessB 
-       ||targetID == PIDUserProcessC
-	   ||targetID == PIDcci 
-	   ||targetID == PIDNullProcess 
-	   ||targetID == PIDiProcessKeyboard
-	   ||targetID == PIDWallClock
-	   ||targetID == PIDiProcessCRT 
-	   ||targetID == PIDiProcessTimer))
-	   return -1;
-	   
-	if(!(new_priority == HIGH_PRIORITY 
-	   ||new_priority == MED_PRIORITY 
-	   ||new_priority == LOW_PRIORITY 
-	   ||new_priority == NULL_PRIORITY))
-	   return -1;
-	   
-		
-	if (targetID == PIDNullProcess){ //Not allowed to change NullProcess PID
-		return 0;
-	}
+	
+    if (!(targetID == PIDUserProcessA || targetID == PIDUserProcessB || targetID == PIDUserProcessC
+		|| targetID == PIDcci || targetID == PIDNullProcess || targetID == PIDiProcessKeyboard || targetID == PIDWallClock
+		|| targetID == PIDiProcessCRT || targetID == PIDiProcessTimer || new_priority == HIGH_PRIORITY
+		||new_priority == MED_PRIORITY || new_priority == LOW_PRIORITY || new_priority == NULL_PRIORITY))
+		return -1;
+	
     struct PCB *temp;
     temp = getPCB(targetID);
     //Since PCB is in a ready Q it must be changed immediately.
@@ -387,22 +375,33 @@ int k_terminate()
 }
 
 int k_get_trace_buffers( struct messageEnvelope * temp){
-	/*if(temp == NULL)
+	if(temp == NULL)
 		return -1;
-	char bufferData[32];
-	int i, j, k;
-	k = 0;
-	for(i=0; i<16; i++)
+	int tempCount = sendTraceBuffer->head;
+	char bufferTemp[8];
+	strcpy(temp->messageText, "Sent/nSender/tReceiver/tType/tTime/n")
+	do
 	{
-		for(j=0; j<3; j++)
-		{
-			bufferData[k] = sendTraceBuffer[i][j];
-			bufferData[k+16] = receiveTraceBuffer[i][j];
-			k++;
-		}
-	}
-	strcpy(temp->messageText, bufferData); //we have to decide where this gets put into a table format. CRT iprocess?
-	*/
+		int receive = sendTraceBuffer[tempCount][0];
+		int send =  sendTraceBuffer[tempCount][1];
+		int msgType =  sendTraceBuffer[tempCount][2];
+		int time =  sendTraceBuffer[tempCount][3];
+		sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", recieve, send, msgType, time);
+		tempCount = (tempCount+1)%16;
+		strcat(temp->messageText, bufferTemp);
+	} while( tempCount != sendTraceBuffer->head )
+	int recCount = receiveTraceBuffer->head;
+	strcpy(temp->messageText, "/nReceive/nSender/tReceiver/tType/tTime/n")
+	do
+	{
+		int receive = receiveTraceBuffer[recCount][0];
+		int send =  receiveTraceBuffer[recCount][1];
+		int msgType =  receiveTraceBuffer[recCount][2];
+		int time =  receiveTraceBuffer[recCount][3];
+		sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", recieve, send, msgType, time);
+		recCount = (recCount+1)%16;
+		strcat(temp->messageText, bufferTemp);
+	} while( recCount != receiveTraceBuffer->head );
 	return 1;
 }
 			
@@ -550,31 +549,40 @@ struct PCB* ReadyProcessDequeue(){//Chuy, is there a better way to 'if' this? BR
 	return ptr;
 }
 
-void add_to_traceBuffer(int PIDSender, int PIDReceiver, int msgType, int traceBufferNumber){
+void add_to_traceBuffer(struct messageEnvelope* temp){
+	printf("\nIn add_to_traceBuffer\n");
+	//printf("Adding to tracebuffer: %d\n",traceBufferNumber);
+	printf("Data to be added: %d %d %d\n", temp->PIDSender, temp->PIDReceiver, temp->messageType);
+	
 	if(traceBufferNumber == 0){//Add to send traceBuffer
-		sendTraceBuffer->data[sendTraceBuffer->tail][0] = PIDSender;
-		sendTraceBuffer->data[sendTraceBuffer->tail][1] = PIDReceiver;
-		sendTraceBuffer->data[sendTraceBuffer->tail][2] = msgType;
-		sendTraceBuffer->data[sendTraceBuffer->tail][3] = traceBufferNumber;
-
+		printf("BEFORE Buffer head: %d   Buffer tail: %d\n", (*sendTraceBuffer).head, (*sendTraceBuffer).tail);
+		sendTraceBuffer->data[sendTraceBuffer->tail][0] = temp->PIDReceiver;
+		sendTraceBuffer->data[sendTraceBuffer->tail][1] = temp->PIDSender;
+		sendTraceBuffer->data[sendTraceBuffer->tail][2] = temp->messageType;
+		//sendTraceBuffer->data[sendTraceBuffer->tail][3] = traceBufferNumber;
+		sendTraceBuffer->data[sendTraceBuffer->tail][3] = temp->messageTimeStamp;
+		
 		sendTraceBuffer->tail ++; //Shift tail down now
 		sendTraceBuffer->tail = sendTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
 		if(sendTraceBuffer->head == sendTraceBuffer->tail){ //This will always be the case on a full trace buffer
 			sendTraceBuffer->head ++; //Move head along, since old head was replaced by new entry
 			sendTraceBuffer->head = sendTraceBuffer->head % 16; //If head is outside trace buffer limits, set back to 0.
 		}
+		printf("AFTER Buffer head: %d   Buffer tail: %d\n", sendTraceBuffer->head, sendTraceBuffer->tail);
 	}
 	else{
 
-		receiveTraceBuffer->data[receiveTraceBuffer->tail][0] = PIDSender;
-		receiveTraceBuffer->data[receiveTraceBuffer->tail][1] = PIDReceiver;
-		receiveTraceBuffer->data[receiveTraceBuffer->tail][2] = msgType;
-		receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = traceBufferNumber;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][0] = temp->PIDReceiver;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][1] = temp->PIDSender;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][2] = temp->messageType;
+		//receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = traceBufferNumber;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = temp->messageTimeStamp;
 		receiveTraceBuffer->tail ++; //Shift tail down now
 		receiveTraceBuffer->tail = receiveTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
 		if(receiveTraceBuffer->head == receiveTraceBuffer->tail){ //This will always be the case on a full trace buffer
 			receiveTraceBuffer->head ++; //Move head along, since old head was replaced by new entry
 			receiveTraceBuffer->head = receiveTraceBuffer->head % 16; //If head is outside trace buffer limits, set back to 0.
 		}
+		printf("AFTER Buffer head: %d   Buffer tail: %d\n", receiveTraceBuffer->head, receiveTraceBuffer->tail);
 	}
 }
