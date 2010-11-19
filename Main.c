@@ -77,49 +77,25 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 /////////////// LOGIC EXECUTION STARTS HERE ////////////////////
 	
 		
-		signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
-	   ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
+	 signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
+	 ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
 	
-    	ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
-  	    initializeProcessReadyQueue();
+     ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
+     initializeProcessReadyQueue();
 
-       ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
-       ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
+     ptrMessage = initializeMessageEnvelopes();   // Create and list the memory envelopes.
+     ptrMessageTail = retrieveEnvelopeTail(ptrMessage); // retrieves the tail ponter of the MessageEnvelopes.
        
-       forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
+     forkAuxillaryProcess();  //forks the keyboard and CRT helper processes. It also initializes the shared memory used by the communication.
    
-       initializeProcessContext();  //Will actually initialize the context of each method.
-   	
-   	   initializeProcessReadyQueue();
-
-   	
-  /* 	struct PCB* temp = ptrPCBList; 
-   	
-   	while(temp !=NULL)
-   	{
-   		printf("PID: %d\n", temp->PID); 
-   		temp = temp->ptrNextPCBList;
-   	
-   	}
-   	
-	 temp =	ptrPCBReadyMed->queueHead;
-	 while(temp !=NULL)
-   	{
-   		printf("PID Meds: %d\n", temp->PID); 
-   		temp = temp->ptrNextPCBQueue;
-   	
-   	}
-*/
- //	ptrCurrentExecuting = ptrPCBList; //When we call release processor/context swith we need to make sure that ptrCurrentExecuting is pointing to the right PCB. 
-		
-	 //because we call initializeProcessContext(), ptrCurrentExecuting will point to the CCI (highest priority process)
-	 
-	 printf("...First PCB Execute  PID: %s\n", debugProcessName(ptrCurrentExecuting->PID));
+     initializeProcessContext();  //Will actually initialize the context of each method.
+     initializeProcessReadyQueue();
 	 
 	 longjmp(ptrCurrentExecuting->contextBuffer,1);//WILL JUMP TO THE FIRST EXECUTION.	
+	 
 	 printf("In Main: Made the jump to first process and came back: FATAL ERROR - cleaning up\n");
 	
-	cleanup(); // execute cleanup if for some reason it made it here.
+	cleanup(); // execute cleanup if for some reason it made it here. This should not be executed
   return 0;
 }
 

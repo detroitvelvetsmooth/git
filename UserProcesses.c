@@ -17,7 +17,9 @@ struct messageEnvelope* CDequeue();
 
 
 void ProcessA(){
-	 printf("Entered Process A\n");
+
+/*	 printf("Entered Process A\n");*/
+
      struct messageEnvelope* start;
      start = receive_message();
      //Check for start message sent by CCI
@@ -47,7 +49,9 @@ void ProcessA(){
 }
 
 void ProcessB(){
-	printf("Entered Process B\n");
+
+/*	printf("Entered Process B\n");*/
+
     struct messageEnvelope* BTemp;
      int status;
      //Start infinte loop
@@ -65,7 +69,7 @@ void ProcessB(){
 void ProcessC(){
      
      
-     printf("Entered Process C\n");
+/*     printf("Entered Process C\n");*/
      struct messageEnvelope* CEnv;
      int status, count;
      
@@ -84,16 +88,17 @@ void ProcessC(){
             
             //we don't want to display the very first one
             
-            if ((count%20) == 0&&count!=NULL){ // means it is divisible.
+            if (count%20 == 0){ // means it is divisible.
                strcpy(CEnv->messageText, "Process C\0");
-               
+            
                status = send_console_chars(CEnv);
                if (status != 1)
                   printf("\nSend_console_chars failed for Process C. ERROR.\n");
+                  
                CEnv = receive_message();
                //Wait for output acknowledgement. Enqueue all non-acknowledge messages to local queue.
                while(CEnv->messageType != MSGTYPEACK){
-                   CEnqueue(CEnv); //TODO: Fill in Proper Function Name.
+                   CEnqueue(CEnv); 
                    CEnv = receive_message();
                }
                
@@ -174,7 +179,7 @@ void CCI()
 		}
 		else if(strcmp(temp->messageText, "ps\0")==0)
 		{
-			temp = request_process_status(temp);
+			request_process_status(temp);
 			send_console_chars(temp); 
 			temp = receive_message();
 		}
@@ -202,7 +207,7 @@ void CCI()
 				}
 			}
 			else{
-					strcpy(temp->messageText, "Illegal Time Command Format Entered.\0");
+					strcpy(temp->messageText, "Illegal Command Entered.\0");
 					send_console_chars(temp);
 					temp = receive_message();
 			}

@@ -282,10 +282,10 @@ int  k_release_processor( )
 	return 1;
 }
 
-struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp ) //THIS FUNCTION WILL GATHER THE LIST OF PCBS AND PRINT THEIR PRIORITY, THEIR STATUS AND THEIR PID. 
+int  k_request_process_status(struct messageEnvelope * temp ) //THIS FUNCTION WILL GATHER THE LIST OF PCBS AND PRINT THEIR PRIORITY, THEIR STATUS AND THEIR PID. 
 {
     if(temp == NULL)
-        return NULL;
+        return -1;
 
 	int PID, Priority, State;
 	char ps[80]; //the string to be populated
@@ -308,15 +308,29 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
     }
 	strcpy(temp->messageText, ps); //TODO - WARNING. strcpy may resize our messageText if ps is too long.
 
-   return temp;		//RETURNS THE MESSAGE WITH THE POPULATED DATA.
+   return -1;		//RETURNS THE MESSAGE WITH THE POPULATED DATA.
 }
 
 int  k_change_priority(int new_priority, int targetID){
-    if (!(targetID == PIDUserProcessA || targetID == PIDUserProcessB || targetID == PIDUserProcessC
-		|| targetID == PIDcci || targetID == PIDNullProcess || targetID == PIDiProcessKeyboard || targetID == PIDWallClock
-		|| targetID == PIDiProcessCRT || targetID == PIDiProcessTimer || new_priority == HIGH_PRIORITY
-		||new_priority == MED_PRIORITY || new_priority == LOW_PRIORITY || new_priority == NULL_PRIORITY))
-		return -1;
+
+    if (!(targetID == PIDUserProcessA 
+       ||targetID == PIDUserProcessB 
+       ||targetID == PIDUserProcessC
+	   ||targetID == PIDcci 
+	   ||targetID == PIDNullProcess 
+	   ||targetID == PIDiProcessKeyboard
+	   ||targetID == PIDWallClock
+	   ||targetID == PIDiProcessCRT 
+	   ||targetID == PIDiProcessTimer))
+	   return -1;
+	   
+	if(!(new_priority == HIGH_PRIORITY 
+	   ||new_priority == MED_PRIORITY 
+	   ||new_priority == LOW_PRIORITY 
+	   ||new_priority == NULL_PRIORITY))
+	   return -1;
+	   
+		
 	if (targetID == PIDNullProcess){ //Not allowed to change NullProcess PID
 		return 0;
 	}

@@ -7,7 +7,6 @@
 
 struct messageEnvelope* k_request_message_env( );
 struct messageEnvelope* k_receive_message( );
-struct messageEnvelope* k_request_process_status(struct messageEnvelope * temp );
 
 int k_release_message_env ( struct messageEnvelope* temp );
 int k_send_message( int dest_process_id, struct messageEnvelope* temp );
@@ -17,6 +16,7 @@ int k_send_console_chars(struct messageEnvelope * temp );
 int  k_release_processor();
 void k_process_switch();
 
+int  k_request_process_status(struct messageEnvelope * temp );
 int  k_change_priority(int new_priority, int targetID); 
 int  k_request_delay(int delay, struct messageEnvelope * temp);
 int  k_get_trace_buffers(struct messageEnvelope* temp);
