@@ -557,7 +557,7 @@ void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber){
 	printf("Data to be added: %d %d %d\n", temp->PIDSender, temp->PIDReceiver, temp->messageType);
 	
 	int time;
-	sscanf(temp-messageTimeStamp, "%d", &time);
+	sscanf(temp->messageTimeStamp, "%d", &time);
 	
 	if(traceBufferNumber == 0){//Add to send traceBuffer
 		printf("BEFORE Buffer head: %d   Buffer tail: %d\n", (*sendTraceBuffer).head, (*sendTraceBuffer).tail);
