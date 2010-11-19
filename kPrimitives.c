@@ -14,7 +14,7 @@ int Enqueue(struct PCB* ptr,struct nodePCB* Q);
 struct PCB* Dequeue(struct nodePCB* Q);
 struct PCB* SearchPCBDequeue(int searchPID, struct nodePCB* Q);
 struct PCB* ReadyProcessDequeue();
-void add_to_traceBuffer(int PIDsender, int PIDreceiver, int msgType, int traceBuffer);//traceBuffer of 0 will be send, 1 will be receive
+void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber);//traceBuffer of 0 will be send, 1 will be receive
 
 ///////////// KPRIMITIVES ///////////////////
 
@@ -160,7 +160,7 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
 
 	//Add sender, receiver, message type information to trace buffer. 
 	//add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 0); //Last parameter (0) is to add to send buffer
-	add_to_traceBuffer(temp);
+	add_to_traceBuffer(temp, 0);
 	return 0;
 }
 
@@ -238,7 +238,7 @@ struct messageEnvelope* k_receive_message( )
 	temp->ptrNextMessage = NULL;
 	//Store the sender, receiver, msgType to trace buffer;
 	//add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 1); // Last paramater (1) is to add it to receive buffer
-	add_to_traceBuffer(temp);
+	add_to_traceBuffer(temp, 1);
 	return temp;
 
 }
@@ -386,10 +386,11 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 		int send =  sendTraceBuffer[tempCount][1];
 		int msgType =  sendTraceBuffer[tempCount][2];
 		int time =  sendTraceBuffer[tempCount][3];
-		sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", recieve, send, msgType, time);
+		sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
 		tempCount = (tempCount+1)%16;
 		strcat(temp->messageText, bufferTemp);
-	} while( tempCount != sendTraceBuffer->head )
+	} while( tempCount != sendTraceBuffer->head );
+		
 	int recCount = receiveTraceBuffer->head;
 	strcpy(temp->messageText, "/nReceive/nSender/tReceiver/tType/tTime/n");
 	do
@@ -549,7 +550,7 @@ struct PCB* ReadyProcessDequeue(){//Chuy, is there a better way to 'if' this? BR
 	return ptr;
 }
 
-void add_to_traceBuffer(struct messageEnvelope* temp){
+void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber){
 	printf("\nIn add_to_traceBuffer\n");
 	//printf("Adding to tracebuffer: %d\n",traceBufferNumber);
 	printf("Data to be added: %d %d %d\n", temp->PIDSender, temp->PIDReceiver, temp->messageType);
