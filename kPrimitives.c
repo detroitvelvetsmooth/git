@@ -379,7 +379,7 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 		return -1;
 	int tempCount = sendTraceBuffer->head;
 	char bufferTemp[8];
-	strcpy(temp->messageText, "Sent/nSender/tReceiver/tType/tTime/n")
+	strcpy(temp->messageText, "Sent/nSender/tReceiver/tType/tTime/n");
 	do
 	{
 		int receive = sendTraceBuffer[tempCount][0];
@@ -391,7 +391,7 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 		strcat(temp->messageText, bufferTemp);
 	} while( tempCount != sendTraceBuffer->head )
 	int recCount = receiveTraceBuffer->head;
-	strcpy(temp->messageText, "/nReceive/nSender/tReceiver/tType/tTime/n")
+	strcpy(temp->messageText, "/nReceive/nSender/tReceiver/tType/tTime/n");
 	do
 	{
 		int receive = receiveTraceBuffer[recCount][0];

@@ -31,6 +31,6 @@ int Enqueue(struct PCB* ptr,struct nodePCB* Q);
 struct PCB* Dequeue(struct nodePCB* Q);
 struct PCB* SearchPCBDequeue(int searchPID, struct nodePCB* Q);
 struct PCB* ReadyProcessDequeue();
-void add_to_traceBuffer(int PIDSender, int PIDReceiver, int msgType, int traceBufferNumber);
+void add_to_traceBuffer(struct messageEnvelope* temp);
 
 	#endif
