@@ -403,7 +403,7 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 			strcat(temp->messageText, bufferTemp);
 		}
 	int recCount = receiveTraceBuffer->head;
-	strcpy(temp->messageText, "/nReceive/nSender/tReceiver/tType/tTime/n");
+	strcat(temp->messageText, "/nReceive/nSender/tReceiver/tType/tTime/n");
 
 		while(recCount > receiveTraceBuffer->tail)
 		{
