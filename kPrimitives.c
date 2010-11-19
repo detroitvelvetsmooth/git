@@ -380,30 +380,52 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 	int tempCount = sendTraceBuffer->head;
 	char bufferTemp[8];
 	int receive, send, msgType, time;
+	int done = 0;
 	strcpy(temp->messageText, "Sent/nSender/tReceiver/tType/tTime/n");
-	do
-	{
-		receive = sendTraceBuffer->data[tempCount][0];
-		send =  sendTraceBuffer->data[tempCount][1];
-		msgType =  sendTraceBuffer->data[tempCount][2];
-		time =  sendTraceBuffer->data[tempCount][3];
-		sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
-		tempCount = (tempCount+1)%16;
-		strcat(temp->messageText, bufferTemp);
-	} while( tempCount != sendTraceBuffer->head );
-		
+		while(tempCount > sendTraceBuffer->tail)
+		{
+			receive = sendTraceBuffer->data[tempCount][0];
+			send =  sendTraceBuffer->data[tempCount][1];
+			msgType =  sendTraceBuffer->data[tempCount][2];
+			time =  sendTraceBuffer->data[tempCount][3];
+			sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
+			tempCount = (tempCount+1)%16;
+			strcat(temp->messageText, bufferTemp);
+		}
+		while(tempCount <= sendTraceBuffer->tail)
+		{
+			receive = sendTraceBuffer->data[tempCount][0];
+			send =  sendTraceBuffer->data[tempCount][1];
+			msgType =  sendTraceBuffer->data[tempCount][2];
+			time =  sendTraceBuffer->data[tempCount][3];
+			sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
+			tempCount = (tempCount+1)%16;
+			strcat(temp->messageText, bufferTemp);
+		}
 	int recCount = receiveTraceBuffer->head;
 	strcpy(temp->messageText, "/nReceive/nSender/tReceiver/tType/tTime/n");
-	do
-	{
-		int receive = receiveTraceBuffer->data[recCount][0];
-		int send =  receiveTraceBuffer->data[recCount][1];
-		int msgType =  receiveTraceBuffer->data[recCount][2];
-		int time =  receiveTraceBuffer->data[recCount][3];
-		sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
-		recCount = (recCount+1)%16;
-		strcat(temp->messageText, bufferTemp);
-	} while( recCount != receiveTraceBuffer->head );
+
+		while(recCount > receiveTraceBuffer->tail)
+		{
+			receive = receiveTraceBuffer->data[recCount][0];
+			send =  receiveTraceBuffer->data[recCount][1];
+			msgType =  receiveTraceBuffer->data[recCount][2];
+			time =  receiveTraceBuffer->data[recCount][3];
+			sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
+			recCount = (recCount+1)%16;
+			strcat(temp->messageText, bufferTemp);
+		}
+		while(recCount <= receiveTraceBuffer->tail)
+		{
+			receive = receiveTraceBuffer->data[recCount][0];
+			send =  receiveTraceBuffer->data[recCount][1];
+			msgType =  receiveTraceBuffer->data[recCount][2];
+			time =  receiveTraceBuffer->data[recCount][3];
+			sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
+			recCount = (recCount+1)%16;
+			strcat(temp->messageText, bufferTemp);
+		}
+
 	return 1;
 }
 			
