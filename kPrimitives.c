@@ -379,13 +379,14 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 		return -1;
 	int tempCount = sendTraceBuffer->head;
 	char bufferTemp[8];
+	int receive, send, msgType, time;
 	strcpy(temp->messageText, "Sent/nSender/tReceiver/tType/tTime/n");
 	do
 	{
-		int receive = sendTraceBuffer[tempCount][0];
-		int send =  sendTraceBuffer[tempCount][1];
-		int msgType =  sendTraceBuffer[tempCount][2];
-		int time =  sendTraceBuffer[tempCount][3];
+		receive = sendTraceBuffer->data[tempCount][0];
+		send =  sendTraceBuffer->data[tempCount][1];
+		msgType =  sendTraceBuffer->data[tempCount][2];
+		time =  sendTraceBuffer->data[tempCount][3];
 		sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
 		tempCount = (tempCount+1)%16;
 		strcat(temp->messageText, bufferTemp);
@@ -395,11 +396,11 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 	strcpy(temp->messageText, "/nReceive/nSender/tReceiver/tType/tTime/n");
 	do
 	{
-		int receive = receiveTraceBuffer[recCount][0];
-		int send =  receiveTraceBuffer[recCount][1];
-		int msgType =  receiveTraceBuffer[recCount][2];
-		int time =  receiveTraceBuffer[recCount][3];
-		sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", recieve, send, msgType, time);
+		int receive = receiveTraceBuffer->data[recCount][0];
+		int send =  receiveTraceBuffer->data[recCount][1];
+		int msgType =  receiveTraceBuffer->data[recCount][2];
+		int time =  receiveTraceBuffer->data[recCount][3];
+		sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
 		recCount = (recCount+1)%16;
 		strcat(temp->messageText, bufferTemp);
 	} while( recCount != receiveTraceBuffer->head );
@@ -555,14 +556,17 @@ void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber){
 	//printf("Adding to tracebuffer: %d\n",traceBufferNumber);
 	printf("Data to be added: %d %d %d\n", temp->PIDSender, temp->PIDReceiver, temp->messageType);
 	
+	int time;
+	sscanf(temp-messageTimeStamp, "%d", &time);
+	
 	if(traceBufferNumber == 0){//Add to send traceBuffer
 		printf("BEFORE Buffer head: %d   Buffer tail: %d\n", (*sendTraceBuffer).head, (*sendTraceBuffer).tail);
 		sendTraceBuffer->data[sendTraceBuffer->tail][0] = temp->PIDReceiver;
 		sendTraceBuffer->data[sendTraceBuffer->tail][1] = temp->PIDSender;
 		sendTraceBuffer->data[sendTraceBuffer->tail][2] = temp->messageType;
 		//sendTraceBuffer->data[sendTraceBuffer->tail][3] = traceBufferNumber;
-		sendTraceBuffer->data[sendTraceBuffer->tail][3] = temp->messageTimeStamp;
 		
+		sendTraceBuffer->data[sendTraceBuffer->tail][3] = time;
 		sendTraceBuffer->tail ++; //Shift tail down now
 		sendTraceBuffer->tail = sendTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
 		if(sendTraceBuffer->head == sendTraceBuffer->tail){ //This will always be the case on a full trace buffer
@@ -577,7 +581,7 @@ void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber){
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][1] = temp->PIDSender;
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][2] = temp->messageType;
 		//receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = traceBufferNumber;
-		receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = temp->messageTimeStamp;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = time;
 		receiveTraceBuffer->tail ++; //Shift tail down now
 		receiveTraceBuffer->tail = receiveTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
 		if(receiveTraceBuffer->head == receiveTraceBuffer->tail){ //This will always be the case on a full trace buffer
