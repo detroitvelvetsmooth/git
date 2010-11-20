@@ -61,13 +61,13 @@ ptrTimingList = NULL;
 ////////////////// TRACE BUFFERS /////////////////////////////
 sendTraceBuffer = (struct traceBuffer*) malloc(sizeof(struct traceBuffer));
 
-(*sendTraceBuffer).head = 0;
-(*sendTraceBuffer).tail = 0;
+(*sendTraceBuffer).head = -1; //To show its empty
+(*sendTraceBuffer).tail = -1;
 
 receiveTraceBuffer = (struct traceBuffer*) malloc(sizeof(struct traceBuffer));
 
-(*receiveTraceBuffer).head = 0;
-(*receiveTraceBuffer).tail = 0;
+(*receiveTraceBuffer).head = -1; //To show its empty
+(*receiveTraceBuffer).tail = -1;
 
 ////////////////// MESSAGE ENVELOPES /////////////////////////
 

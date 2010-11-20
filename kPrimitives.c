@@ -377,55 +377,42 @@ int k_terminate()
 int k_get_trace_buffers( struct messageEnvelope * temp){
 	if(temp == NULL)
 		return -1;
-	int tempCount = sendTraceBuffer->head;
+	int tempCount= sendTraceBuffer->head;
 	char bufferTemp[8];
 	int receive, send, msgType, time;
 	int done = 0;
-	strcpy(temp->messageText, "Sent/nSender/tReceiver/tType/tTime/n");
-		while(tempCount > sendTraceBuffer->tail)
-		{
+	//int count = sendTraceBuffer->head;
+	strcpy(temp->messageText, "Sent\nSender\tReceiver\tType\tTime\n");	
+	if(sendTraceBuffer->head != -1){
+		do{
+			//count++;
+			//printf("Count: %d\n",count);
 			receive = sendTraceBuffer->data[tempCount][0];
-			send =  sendTraceBuffer->data[tempCount][1];
-			msgType =  sendTraceBuffer->data[tempCount][2];
-			time =  sendTraceBuffer->data[tempCount][3];
-			sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
+			send = sendTraceBuffer->data[tempCount][1];
+			msgType = sendTraceBuffer->data[tempCount][2];
+			time = sendTraceBuffer->data[tempCount][3];
+			sprintf(bufferTemp, "%d\t%d\t%d\t%d\n", receive, send, msgType, time);
+			tempCount = tempCount +1;
+			//printf("tempCount: %d\n", tempCount);
+			tempCount= (tempCount)%16;
+			//printf("tempCount: %d\n", tempCount);
+			strcat(temp->messageText, bufferTemp);
+		}while(tempCount != ((sendTraceBuffer->tail + 1)%16));//Stop iteration once it has reached tail
+	}
+	tempCount = receiveTraceBuffer->head;
+	strcat(temp->messageText, "\nReceive\nSender\tReceiver\tType\tTime\n");
+	if(receiveTraceBuffer->head != -1){
+		do{
+			receive = receiveTraceBuffer->data[tempCount][0];
+			send =  receiveTraceBuffer->data[tempCount][1];
+			msgType =  receiveTraceBuffer->data[tempCount][2];
+			time =  receiveTraceBuffer->data[tempCount][3];
+			sprintf(bufferTemp, "%d\t%d\t%d\t%d\n", receive, send, msgType, time);
 			tempCount = (tempCount+1)%16;
 			strcat(temp->messageText, bufferTemp);
-		}
-		while(tempCount <= sendTraceBuffer->tail)
-		{
-			receive = sendTraceBuffer->data[tempCount][0];
-			send =  sendTraceBuffer->data[tempCount][1];
-			msgType =  sendTraceBuffer->data[tempCount][2];
-			time =  sendTraceBuffer->data[tempCount][3];
-			sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
-			tempCount = (tempCount+1)%16;
-			strcat(temp->messageText, bufferTemp);
-		}
-	int recCount = receiveTraceBuffer->head;
-	strcat(temp->messageText, "/nReceive/nSender/tReceiver/tType/tTime/n");
-
-		while(recCount > receiveTraceBuffer->tail)
-		{
-			receive = receiveTraceBuffer->data[recCount][0];
-			send =  receiveTraceBuffer->data[recCount][1];
-			msgType =  receiveTraceBuffer->data[recCount][2];
-			time =  receiveTraceBuffer->data[recCount][3];
-			sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
-			recCount = (recCount+1)%16;
-			strcat(temp->messageText, bufferTemp);
-		}
-		while(recCount <= receiveTraceBuffer->tail)
-		{
-			receive = receiveTraceBuffer->data[recCount][0];
-			send =  receiveTraceBuffer->data[recCount][1];
-			msgType =  receiveTraceBuffer->data[recCount][2];
-			time =  receiveTraceBuffer->data[recCount][3];
-			sprintf(bufferTemp, "%d/t%d/t%d/t%d/n", receive, send, msgType, time);
-			recCount = (recCount+1)%16;
-			strcat(temp->messageText, bufferTemp);
-		}
-
+		}while(tempCount != ((receiveTraceBuffer->tail +1)%16));//Stop iteration once it has reached tail
+	}
+	printf("Out of that\n");
 	return 1;
 }
 			
@@ -574,42 +561,41 @@ struct PCB* ReadyProcessDequeue(){//Chuy, is there a better way to 'if' this? BR
 }
 
 void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber){
-	printf("\nIn add_to_traceBuffer\n");
+	//printf("\nIn add_to_traceBuffer\n");
 	//printf("Adding to tracebuffer: %d\n",traceBufferNumber);
-	printf("Data to be added: %d %d %d\n", temp->PIDSender, temp->PIDReceiver, temp->messageType);
+	//printf("Data to be added: %d %d %d\n", temp->PIDSender, temp->PIDReceiver, temp->messageType);
 	
 	int time;
 	sscanf(temp->messageTimeStamp, "%d", &time);
 	
 	if(traceBufferNumber == 0){//Add to send traceBuffer
-		printf("BEFORE Buffer head: %d   Buffer tail: %d\n", (*sendTraceBuffer).head, (*sendTraceBuffer).tail);
+		sendTraceBuffer->tail++;
+		sendTraceBuffer->tail = sendTraceBuffer->tail%16; //Move to row for new entry
 		sendTraceBuffer->data[sendTraceBuffer->tail][0] = temp->PIDReceiver;
 		sendTraceBuffer->data[sendTraceBuffer->tail][1] = temp->PIDSender;
 		sendTraceBuffer->data[sendTraceBuffer->tail][2] = temp->messageType;
-		//sendTraceBuffer->data[sendTraceBuffer->tail][3] = traceBufferNumber;
-		
 		sendTraceBuffer->data[sendTraceBuffer->tail][3] = time;
-		sendTraceBuffer->tail ++; //Shift tail down now
-		sendTraceBuffer->tail = sendTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
-		if(sendTraceBuffer->head == sendTraceBuffer->tail){ //This will always be the case on a full trace buffer
+		
+		if(sendTraceBuffer->head == -1) //Empty Buffer, now one entry
+			sendTraceBuffer->head ++; 
+		else if(sendTraceBuffer->head == sendTraceBuffer->tail){ //This will always be the case on a full trace buffer
 			sendTraceBuffer->head ++; //Move head along, since old head was replaced by new entry
 			sendTraceBuffer->head = sendTraceBuffer->head % 16; //If head is outside trace buffer limits, set back to 0.
 		}
-		printf("AFTER Buffer head: %d   Buffer tail: %d\n", sendTraceBuffer->head, sendTraceBuffer->tail);
 	}
 	else{
-
+		receiveTraceBuffer->tail ++; //Shift tail down now
+		receiveTraceBuffer->tail = receiveTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][0] = temp->PIDReceiver;
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][1] = temp->PIDSender;
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][2] = temp->messageType;
-		//receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = traceBufferNumber;
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = time;
-		receiveTraceBuffer->tail ++; //Shift tail down now
-		receiveTraceBuffer->tail = receiveTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
-		if(receiveTraceBuffer->head == receiveTraceBuffer->tail){ //This will always be the case on a full trace buffer
+
+		if(receiveTraceBuffer->head == -1) //Empty Buffer, now one entry
+			receiveTraceBuffer->head ++;
+		else if(receiveTraceBuffer->head == receiveTraceBuffer->tail){ //This will always be the case on a full trace buffer
 			receiveTraceBuffer->head ++; //Move head along, since old head was replaced by new entry
 			receiveTraceBuffer->head = receiveTraceBuffer->head % 16; //If head is outside trace buffer limits, set back to 0.
 		}
-		printf("AFTER Buffer head: %d   Buffer tail: %d\n", receiveTraceBuffer->head, receiveTraceBuffer->tail);
 	}
 }
