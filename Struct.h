@@ -152,7 +152,7 @@ struct messageEnvelope
 	int sleepTicks; // WILL BE USED TO SPECIFY HOW MANY TICKS ARE REMAINING IF A PROCESS IS SLEEPING.
 	int messageType; //NOT sure of what type of messages we will have. we will probably use global variables as well.
 	char messageTimeStamp[10]; // contain the time when the message was sent.
-	char messageText[100];  //contains the actual message. It will be in string format and it could subsequently be parsed.
+	char messageText[512];  //contains the actual message. It will be in string format and it could subsequently be parsed.
 };
 
 struct PCB{

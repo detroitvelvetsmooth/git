@@ -291,16 +291,16 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
         return NULL;
 
 	int PID, Priority, State;
-	char ps[80]; //the string to be populated
+	char ps[255]; //the string to be populated
 
     strcpy(ps, "PID\tPri\tState\n"); //MAKES THE HEADERS FOR THE COLUMNS.
     
     struct PCB *process; //temporary PCB that loops through
     process = ptrPCBList; //initializes loop pointing to the first PCB
+	char tempPS[32]; //I DON'T KNOW IF THIS SIZE IS RIGHT. EITHER WAY IT WILL BE RESIZED BY SPRINTF. 
 
     while(process != NULL)
     {
-		char tempPS[6]; //I DON'T KNOW IF THIS SIZE IS RIGHT. EITHER WAY IT WILL BE RESIZED BY SPRINTF. 
 		PID = process->PID;
 		Priority = process->processPriority;
 		State = process->PCBState;
@@ -378,7 +378,7 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 	if(temp == NULL)
 		return -1;
 	int tempCount= sendTraceBuffer->head;
-	char bufferTemp[8];
+	char bufferTemp[255];
 	int receive, send, msgType, time;
 	int done = 0;
 	int count = sendTraceBuffer->head;
@@ -412,7 +412,6 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 			strcat(temp->messageText, bufferTemp);
 		}while(tempCount != ((receiveTraceBuffer->tail +1)%16));//Stop iteration once it has reached tail
 	}
-	printf("Out of that\n");
 	return 1;
 }
 			
