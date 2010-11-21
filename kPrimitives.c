@@ -104,7 +104,6 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
 
 	temp->PIDSender = ptrCurrentExecuting->PID;
 	temp->PIDReceiver = dest_process_id;
-	sprintf(temp->messageTimeStamp, "%d", absoluteTime);
 
 
 	struct PCB *receiver;
@@ -159,7 +158,7 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
         }
 
 	//Add sender, receiver, message type information to trace buffer. 
-	//add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 0); //Last parameter (0) is to add to send buffer
+	sprintf(temp->messageTimeStamp, "%d", absoluteTime); //TimeStamp it once sending is complete.
 	add_to_traceBuffer(temp, 0);
 	return 0;
 }
@@ -238,6 +237,8 @@ struct messageEnvelope* k_receive_message( )
 	temp->ptrNextMessage = NULL;
 	//Store the sender, receiver, msgType to trace buffer;
 	//add_to_traceBuffer(temp->PIDSender, temp->PIDReceiver, temp->messageType, (int) 1); // Last paramater (1) is to add it to receive buffer
+	
+	sprintf(temp->messageTimeStamp, "%d", absoluteTime); //TimeStamp it once receiving is complete.
 	add_to_traceBuffer(temp, 1);
 	return temp;
 
@@ -317,9 +318,9 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
 int  k_change_priority(int new_priority, int targetID){
 	
     if (!(targetID == PIDUserProcessA || targetID == PIDUserProcessB || targetID == PIDUserProcessC
-		|| targetID == PIDcci || targetID == PIDNullProcess || targetID == PIDiProcessKeyboard || targetID == PIDWallClock
-		|| targetID == PIDiProcessCRT || targetID == PIDiProcessTimer || new_priority == HIGH_PRIORITY
-		||new_priority == MED_PRIORITY || new_priority == LOW_PRIORITY || new_priority == NULL_PRIORITY))
+		|| targetID == PIDcci || targetID == PIDNullProcess || targetID == PIDWallClock)
+		|| !(new_priority == HIGH_PRIORITY ||new_priority == MED_PRIORITY 
+		|| new_priority == LOW_PRIORITY || new_priority == NULL_PRIORITY))
 		return -1;
 	
     struct PCB *temp;

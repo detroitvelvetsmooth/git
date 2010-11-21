@@ -36,7 +36,7 @@ int main (int argc, char * argv[]){
 	int i = 0;
 	
 	do{
-		   c = getchar();
+		c = getchar();
 		if (c == '\n'){ 
 		
 			input_mem_p->data[i] ='\0';
@@ -45,8 +45,10 @@ int main (int argc, char * argv[]){
 /*			printf("UNIXkbd says: Input received. Notifying keyboardIprocess\n");*/
 /*			fflush(stdout); */
 			kill(parent_id, SIGUSR2); //sends signal to the mainRTX.
-			while (input_mem_p->completedFlag == 1)
-			sleep(1);
+/*			while (input_mem_p->completedFlag == 1){
+				kill(parent_id, SIGUSR2);
+				usleep(500);
+			}*/
 		}
 		else{
 			if(strlen(input_mem_p->data) < MAXCHAR){ //checks that there is still some space in the buffer. 

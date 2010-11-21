@@ -163,7 +163,7 @@ void CCI()
 			temp = receive_message();
 		}
 
-	else if(strcmp(temp->messageText, "\0")==0) 
+		else if(strcmp(temp->messageText, "\0")==0) 
 		{  
 /* 			DOES NOTHING	*/
 /*			send_console_chars(temp);*/
@@ -171,8 +171,8 @@ void CCI()
 		}
 		else if(strcmp(temp->messageText, "s\0")==0)
 		{    
-           	 struct messageEnvelope * messageForProcess = NULL;
-            		messageForProcess = request_message_env();
+           	struct messageEnvelope * messageForProcess = NULL;
+            messageForProcess = request_message_env();
 			strcpy(messageForProcess->messageText,temp->messageText);
 			send_message((int)(PIDUserProcessA), messageForProcess);
 			release_processor(); 
