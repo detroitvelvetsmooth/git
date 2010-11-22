@@ -88,7 +88,7 @@ void ProcessC(){
             
             //we don't want to display the very first one
             
-            if (count%20 == 0){ // means it is divisible.
+            if (count%20 == 0 &&count!= 0){ // means it is divisible.
                strcpy(CEnv->messageText, "Process C\0");
             
                status = send_console_chars(CEnv);
@@ -117,7 +117,7 @@ void ProcessC(){
         //Release message envelope. Will either be a msgtypewakeup, or a non-divisable by 20 message from B.
         status = release_message_env(CEnv);
         if (status != 1)
-           printf("\nrelease_message_env failed for Process C. ERROR.\n");
+           printf("\nRelease_message_env failed for Process C. ERROR.\n");
         release_processor(); 
      }while(1);
 }
@@ -263,23 +263,21 @@ void WallClock(){
      char time[10];
      do{  
     	if(displayWallClock == 1){
-
-        temp->messageType = MSGTYPEDATA;                    
-        math = relativeTime/10;
-        hour = (math/3600)%24;
-	    math %= 3600;
-	    min = math / 60;
-	    sec = math % 60;
-        sprintf (time,"%02d:%02d:%02d\0",hour,min,sec); 
-        strcpy(temp->messageText,time);
-        send_console_chars(temp);
-        temp = receive_message();
-        //temp->messageType = MSGTYPEWAKEUP;  
-        request_delay(10, temp);
-        temp = receive_message();
-        }
-                
-      release_processor();
+			temp->messageType = MSGTYPEDATA;                    
+			math = relativeTime/10;
+			hour = (math/3600)%24;
+			math %= 3600;
+			min = math / 60;
+			sec = math % 60;
+			sprintf (time,"%02d:%02d:%02d\0",hour,min,sec); 
+			strcpy(temp->messageText,time);
+			send_console_chars(temp);
+			temp = receive_message();
+			//temp->messageType = MSGTYPEWAKEUP;  
+			request_delay(10, temp);
+			temp = receive_message();
+        }        
+		release_processor();
      }while(1);
 }
 ///////////////////// USER PROCESSES HELPER FUNCTIONS ////////////
