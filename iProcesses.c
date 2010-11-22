@@ -1,6 +1,29 @@
 #include "Struct.h"
 #include "publicProcesses.h"
 
+void preemptive(){
+
+	struct PCB* ptr = NULL;
+	ptr = ptrPCBReadyHigh->queueHead;
+
+	if(ptr == NULL){//Assign ptr to the next available Ready Process
+		ptr = ptrPCBReadyMed->queueHead;
+		if(ptr == NULL){
+			ptr = ptrPCBReadyLow->queueHead;
+			if(ptr == NULL){
+				ptr = ptrPCBReadyNull->queueHead;
+									} } }
+	if(ptr != NULL){//If process being interupted is NOT NULL process
+		if(ptrCurrentExecuting->processPriority > ptr->processPriority){//If a Ready Process exists of higher priority
+			k_release_processor();
+			printf("Preempted\n");
+			return;
+    }
+	}
+}
+		
+
+
 
 struct messageEnvelope* TimingListDequeue(){
        if(ptrTimingList == NULL)
@@ -73,8 +96,8 @@ void iProcessAlarm(){
         }
     }   
     ptrCurrentExecuting = temp;
+   preemptive();
    atomic(0);
-
 }
 
 	void iProcessCRT(){ 
@@ -107,6 +130,7 @@ void iProcessAlarm(){
 		}
 	}
 	ptrCurrentExecuting = temp; //Reset to the current executing process.
+	//preemptive();
 atomic(0);
 }
 
@@ -137,6 +161,7 @@ void iProcessKeyboard(){
 			k_release_message_env(env);//if mem not ready, ignore env; will never happen (SINCE COMPUTERS ARE FAAAAST)
 	}
 	  ptrCurrentExecuting = temp;
+	//preemptive();
 	atomic(0);
 }
 
