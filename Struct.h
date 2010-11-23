@@ -69,6 +69,12 @@ char * debugProcessName(int PID);
 char processName[1];
 char * debugMessageType(int Type);
  char msg[1];
+ 
+ //////////ATOMICITY /////////////////
+ 
+ sigset_t oldmask;
+ sigset_t newmask;
+ int atomicCount; 
 
 //////////////// HELPER PROCESS KEYBOARD INITIALIZATION //////////////////
 

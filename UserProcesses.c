@@ -88,7 +88,7 @@ void ProcessC(){
             //Check messagetype to make sure its from process B.
        
         if (CEnv->messageType == MSGTYPECOUNT){
-            //If message content is devisable by 20 then continue.
+            //If message content is divisable by 20 then continue.
             sscanf(CEnv->messageText, "%d", &count); //TURNS FROM A CHARACTER ARRAY TO AN INTEGER.
             
             //we don't want to display the very first one
@@ -131,7 +131,6 @@ void NullProcess(){
 //Infinite Loop    
             
      do{
-
 	//	 printf("....I'm the null process...and my priority:%d\n", ptrCurrentExecuting->processPriority);
 
      		sleep(2);
@@ -140,7 +139,7 @@ void NullProcess(){
 }
 void CCI()
 {
-   
+   	int sentS=0;
 	int hour, min, sec;
 	int newPri, PID;
 	int check_result;
@@ -158,7 +157,7 @@ void CCI()
 		
 		temp = receive_message(); //GETS THE MESSAGE BACK FROM THE CRT. 
 /*		printf("CCI: Our Message back from CRT: %s\n", temp->messageText);*/
-	
+		
 		get_console_chars(temp);
 		temp = receive_message(); //assuming KB iProcess sends env    back to process //GETS THE MESSAGE BACK FROM THE KEYBOARD IPROCESS.
 /*		printf("CCI: Our Message back from KBD: %s\n", temp->messageText);*/
@@ -176,12 +175,16 @@ void CCI()
 /*			temp = receive_message();*/
 		}
 		else if(strcmp(temp->messageText, "s\0")==0)
-		{    
+		{ 
+			if(sentS==0){
+			
            	struct messageEnvelope * messageForProcess = NULL;
             messageForProcess = request_message_env();
 			strcpy(messageForProcess->messageText,temp->messageText);
 			send_message((int)(PIDUserProcessA), messageForProcess);
+			sentS = 1;
 			release_processor(); 
+			}
 		}
 		else if(strcmp(temp->messageText, "ps\0")==0)
 		{
@@ -263,6 +266,7 @@ void CCI()
 }
 
 void WallClock(){
+
      struct messageEnvelope* temp;//temp is out temporary time env
      temp = request_message_env();
      int math, hour, min, sec;
@@ -280,8 +284,10 @@ void WallClock(){
 			send_console_chars(temp);
 			temp = receive_message();
 			//temp->messageType = MSGTYPEWAKEUP;  
+						printf("Wall Clock received message back from CRT.\n");
 			request_delay(10, temp);
 			temp = receive_message();
+			printf("Wall Clock received message back from iProcessalarm.\n");
         }        
 		release_processor();
      }while(1);

@@ -50,6 +50,7 @@ int main (int argc, char * argv[]){
 			kill(parent_id, SIGUSR1);
 		}*/
 		kill(parent_id, SIGUSR1); //remove this line when atomicity is working.
+	
 	}while(1);
 	printf("AN ISSUE HAS OCCURED WITHIN THE UNIX CRT PROCESS");
 }

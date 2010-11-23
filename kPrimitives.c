@@ -22,8 +22,7 @@ void k_process_switch(){
 
  struct	PCB* next_PCB = ReadyProcessDequeue(); //finds the next pcb to execute with the highest priority.
 	next_PCB->PCBState = EXECUTING;
-	//printf("k_process_switch: Switching To: %s\n", debugProcessName(next_PCB->PID));
-	//ptrCurrentExecuting = next_PCB; // CONTEXT SWITCH ONLY WORKS WHEN WE PASS IN PTRCURRENTEXECUTING BECAUSE THATS HOW THE CONTEXT WAS INITIALIZED.
+/*	printf("k_process_switch: Switching To: %s\n", debugProcessName(next_PCB->PID));*/
 																	
 	context_switch(next_PCB);// SINCE PTRCURRENTEXECUTING IS A GLOBAL PARAMETER WE DON'T NEED TO PASS IT IN. HOWEVER WE MUST MAKE SURE THAT IT IS POINTING TO WHAT WE WANT TO EXECUTE.->Or for this case, pointing to what used to be executing
 }
@@ -40,8 +39,9 @@ struct messageEnvelope* k_request_message_env( ){
       if(result !=1)
       printf("In k_request_message_env: Enqueue function failed to return correctly\n");
       
-      
+      atomic(0); //need to fix atomic on/off because you are jumping to another place
       k_process_switch(); 
+      atomic(1);
     }
    
     temp = ptrMessage;
@@ -226,7 +226,9 @@ struct messageEnvelope* k_receive_message( )
        if (result != 1)
            printf("Inside k_receive_message_env: The invoking PCB is meant to be blocked. The Enqueue function was unable to enqueue the PCB to the Blocked on Receive Q.\n");
        
+       atomic(0); //MAY OR MAY NOT WORK
        k_process_switch();//Call Process_switch();
+       atomic(1);	// MAY OR MAY NOT WORKS
    }   
    
     if(ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage==NULL) //Inbox is size 1
@@ -281,8 +283,9 @@ int  k_release_processor( )
 	else if(ptrCurrentExecuting->processPriority == NULL_PRIORITY)
 	Enqueue(ptrCurrentExecuting,ptrPCBReadyNull);
 	
-
+	atomic(0);
 	k_process_switch();
+	atomic(1);
 	return 1;
 }
 
@@ -437,29 +440,67 @@ void context_switch(struct PCB* next_PCB){
 }
 
 void atomic(int on) {
-	printf("atomic was called\n");
+
+/*	// you wish to have the following cases when calling atomic*/
+/*	- If atomic was off, and you call atomic(on)*/
+/*	- If atomic was on and you call   atomic(on) again*/
+/*	- If atomic was on and you call atomic(off) and atomic turns off*/
+/*	- If atomic was on and you call atomic(off) and atomic does not turn off.*/
+
      
-    static sigset_t oldmask;
-    	   sigset_t newmask;
-    if (on==1) {
-       atomic_count++;
-       if (atomic_count == 1) { //Check to see if atomic isn't already on
-          sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
+/*    static sigset_t oldmask;*/
+/*    	   sigset_t newmask;*/
+
+	if(atomicCount==0&&on==1)  //atomic must be turned on because it was off.
+	{	
+/*		printf("Atomic Turned On\n");*/
+		  sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
           sigaddset(&newmask, 14); //the alarm signal
           sigaddset(&newmask, 2); // the CNTRL-C
           sigaddset(&newmask, SIGUSR1);
           sigaddset(&newmask, SIGUSR2);
           sigprocmask(SIG_BLOCK, &newmask, &oldmask); //Oldmask saves the signals being blocked
-       }
-    }
-    else {
-         atomic_count--;
-         if (atomic_count == 0) { //Check to see if atomic can be turned off
-            sigprocmask(SIG_SETMASK, &oldmask, NULL);
-         }
-    }
+	
+	}
+	else if(atomicCount==1&&on==0) //atomicCount is 1 but we want to turn atomic off now. 
+	{
+/*		printf("Atomic Turned OFF\n");*/
+	  	sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	}
+	
+	if(on==1) // update our values. regardless if we are turning it on or off. 
+	atomicCount++;
+	else
+	atomicCount--;
+	
+	if(atomicCount<0)
+	{	
+/*		printf("Atomic Count is less than zero, fatal error\n");*/
+		cleanup();
+	
+	}
+	
+}  	   
+/*    	   */
+/*    if (on==1) {*/
+/*       atomic_count++;*/
+/*       if (atomic_count == 1) { //Check to see if atomic isn't already on*/
+/*          sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.*/
+/*          sigaddset(&newmask, 14); //the alarm signal*/
+/*          sigaddset(&newmask, 2); // the CNTRL-C*/
+/*          sigaddset(&newmask, SIGUSR1);*/
+/*          sigaddset(&newmask, SIGUSR2);*/
+/*          sigprocmask(SIG_BLOCK, &newmask, &oldmask); //Oldmask saves the signals being blocked*/
+/*       }*/
+/*    }*/
+/*    else {*/
+/*         atomic_count--;*/
+/*         if (atomic_count == 0) { //Check to see if atomic can be turned off*/
+/*          sigprocmask(SIG_SETMASK, &oldmask, NULL);*/
+/*         }*/
+/*    }*/
     
-}
+
 
 struct PCB * getPCB(int findPID)
 {
