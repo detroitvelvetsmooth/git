@@ -66,9 +66,9 @@ void WallClock();
 void iProcessCRT();
 void cleanup();
 char * debugProcessName(int PID);
-char processName[1];
+char processName[20];
 char * debugMessageType(int Type);
- char msg[1];
+ char msg[20];
  
  //////////ATOMICITY /////////////////
  
@@ -165,6 +165,7 @@ struct PCB{
 	int PID; //will contain the PID as defined in the initialization table
 	int PCBState; //will contain an int indicating their running state. Which will also change.
 	int processPriority; //Will contain the priority of each process.
+	int CPUControl;
 
 	void (*programCounter)(); // will contain a ptr to the initial start of the process. hence it is a ptr to a function (THIS MAY BE WRONG)
 	char * ptrStack; //contain a ptr to the stack. 

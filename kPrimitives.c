@@ -295,9 +295,9 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
         return NULL;
 
 	int PID, Priority, State;
+	int control;
 	char ps[255]; //the string to be populated
-
-    strcpy(ps, "PID\tPri\tState\n"); //MAKES THE HEADERS FOR THE COLUMNS.
+    strcpy(ps, "PID\tPri\tState\tCPU Time\n"); //MAKES THE HEADERS FOR THE COLUMNS.
     
     struct PCB *process; //temporary PCB that loops through
     process = ptrPCBList; //initializes loop pointing to the first PCB
@@ -308,10 +308,10 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
 		PID = process->PID;
 		Priority = process->processPriority;
 		State = process->PCBState;
-		sprintf(tempPS, "%d\t%d\t%d\n", PID, Priority, State);
+		control = (process->CPUControl/absoluteTime)*100;
+		sprintf(tempPS, "%d\t%d\t%d\t%d\n", PID, Priority, State, process->CPUControl);
 		strcat(ps, tempPS);
-		
-      	  process = process->ptrNextPCBList;
+      	process = process->ptrNextPCBList;
     }
 	strcpy(temp->messageText, ps); //TODO - WARNING. strcpy may resize our messageText if ps is too long.
 
@@ -386,8 +386,6 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 	int tempCount= sendTraceBuffer->head; //TEMP count contains the number of messages. 
 	char bufferTemp[255];
 	int receive, send, msgType, time;
-	int done = 0;
-	int count = sendTraceBuffer->head;
 	char format[100];
 	char string1[10]= "Sender";
 	char string2[10]= "Receiver";
@@ -427,7 +425,6 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 			strcat(temp->messageText, bufferTemp);
 		}while(tempCount != ((receiveTraceBuffer->tail +1)%16));//Stop iteration once it has reached tail
 	}
-	printf("The length of the buffer message is: %d\n", strlen(temp->messageText));
 	return 1;
 }
 			

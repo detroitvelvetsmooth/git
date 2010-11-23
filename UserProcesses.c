@@ -19,7 +19,6 @@ struct messageEnvelope* CDequeue();
 void ProcessA(){
 
 /*	 printf("Entered Process A\n");*/
-
      struct messageEnvelope* start;
     
      start = receive_message();
@@ -60,9 +59,7 @@ void ProcessB(){
      //Start infinte loop
      do{
         //Receive message and send to process C, then release processor.
-        BTemp = receive_message();
-               
-            
+        BTemp = receive_message();               
         status = send_message(PIDUserProcessC, BTemp);
         if (status!=1)
            printf("\n Send_Message failed from ProcessB to ProcessC\n");
@@ -93,8 +90,9 @@ void ProcessC(){
             
             //we don't want to display the very first one
             
-            if (count%20 == 0 &&count!= 0){ // means it is divisible.
-               strcpy(CEnv->messageText, "Process C\0");
+            if (count%20 == 0 && count!= 0){ // means it is divisible.
+				printf("Count is : %d\n",count);
+				strcpy(CEnv->messageText, "Process C\0");
                
                status = send_console_chars(CEnv);
                if (status != 1)
@@ -131,9 +129,6 @@ void NullProcess(){
 //Infinite Loop    
             
      do{
-	//	 printf("....I'm the null process...and my priority:%d\n", ptrCurrentExecuting->processPriority);
-
-     		sleep(2);
            release_processor();
      }while(1);
 }
@@ -176,12 +171,17 @@ void CCI()
 		{ 
 			if(sentS==0){
 			
-           	struct messageEnvelope * messageForProcess = NULL;
-            messageForProcess = request_message_env();
-			strcpy(messageForProcess->messageText,temp->messageText);
-			send_message((int)(PIDUserProcessA), messageForProcess);
-			sentS = 1;
-			release_processor(); 
+           		struct messageEnvelope * messageForProcess = NULL;
+				messageForProcess = request_message_env();
+				strcpy(messageForProcess->messageText,temp->messageText);
+				send_message((int)(PIDUserProcessA), messageForProcess);
+				sentS = 1;
+				release_processor(); 
+			}
+			else{
+				strcpy(temp->messageText, "Process A has already been started.\0");
+				send_console_chars(temp);
+				temp = receive_message();
 			}
 		}
 		else if(strcmp(temp->messageText, "ps\0")==0)
@@ -277,7 +277,7 @@ void WallClock(){
 			math %= 3600;
 			min = math / 60;
 			sec = math % 60;
-			sprintf (time,"%02d:%02d:%02d\0",hour,min,sec); 
+			sprintf (time,"%02d:%02d:%02d",hour,min,sec); 
 			strcpy(temp->messageText,time);
 			send_console_chars(temp);
 			temp = receive_message();
