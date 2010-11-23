@@ -43,19 +43,9 @@ int main (int argc, char * argv[]){
 			i = 0;
 			input_mem_p->completedFlag = 1; //LETS THE IPROCESS KNOW ITS READY. 
 /*			printf("UNIXkbd says: Input received. Notifying keyboardIprocess\n");*/
-/*			fflush(stdout); */
-<<<<<<< HEAD
-//			kill(parent_id, SIGUSR2); //sends signal to the mainRTX.
-			while (input_mem_p->completedFlag == 1){
-				printf("\nSignalling RTX to attend to buffer.\n");
-=======
+
 			kill(parent_id, SIGUSR2); //sends signal to the mainRTX.
-			
-/*			while (input_mem_p->completedFlag == 1){
->>>>>>> 62923be5dffbb140a305eb9cea23a511d01db8bf
-				kill(parent_id, SIGUSR2);
-				usleep(5000);
-			}
+
 		}
 		else{
 			if(strlen(input_mem_p->data) < MAXCHAR){ //checks that there is still some space in the buffer. 

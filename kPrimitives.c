@@ -319,9 +319,11 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
 }
 
 int  k_change_priority(int new_priority, int targetID){
-	
+	if(targetID == PIDNullProcess)
+		return 0;
+
     if (!(targetID == PIDUserProcessA || targetID == PIDUserProcessB || targetID == PIDUserProcessC
-		|| targetID == PIDcci || targetID == PIDNullProcess || targetID == PIDWallClock)
+		|| targetID == PIDcci || targetID == PIDWallClock)
 		|| !(new_priority == HIGH_PRIORITY ||new_priority == MED_PRIORITY 
 		|| new_priority == LOW_PRIORITY || new_priority == NULL_PRIORITY))
 		return -1;
@@ -425,27 +427,28 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 			strcat(temp->messageText, bufferTemp);
 		}while(tempCount != ((receiveTraceBuffer->tail +1)%16));//Stop iteration once it has reached tail
 	}
+	printf("The length of the buffer message is: %d\n", strlen(temp->messageText));
 	return 1;
 }
 			
 /////////////PRIMITIVE HELPER FUNCTIONS //////////////////////
 
 void context_switch(struct PCB* next_PCB){
-	atomic(0); //Turn off atomic before jump
+
 	int return_code = setjmp(ptrCurrentExecuting->contextBuffer);
 	
 	if(return_code == 0){
 	ptrCurrentExecuting = next_PCB;
 	longjmp(ptrCurrentExecuting->contextBuffer,1);//will it work on next_PCB's 1st execution? IT SHOULD NOW. 
 	}
-	atomic(1); //Turn on atomic after jump
+
 }
 
 void atomic(int on) {
-    
+   
 	if(atomicCount==0&&on==1)  //atomic must be turned on because it was off.
 	{	
-/*		printf("Atomic Turned On\n");*/
+//		printf("Atomic Turned On\n");
 		  sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
           sigaddset(&newmask, 14); //the alarm signal
           sigaddset(&newmask, 2); // the CNTRL-C
@@ -455,7 +458,7 @@ void atomic(int on) {
 	}
 	else if(atomicCount==1&&on==0) //atomicCount is 1 but we want to turn atomic off now. 
 	{
-/*		printf("Atomic Turned OFF\n");*/
+//		printf("Atomic Turned OFF\n");
 	  	sigprocmask(SIG_SETMASK, &oldmask, NULL);
 	}
 	

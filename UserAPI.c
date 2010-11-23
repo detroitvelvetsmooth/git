@@ -76,9 +76,10 @@ int  release_processor( )
 int request_process_status(struct messageEnvelope * temp )
 {
 	atomic(1);
-	k_request_process_status(temp); //will populate our message of temp with the commands in tabulated format. 
+	int check_result=-1;
+	check_result = k_request_process_status(temp); //will populate our message of temp with the commands in tabulated format. 
 	atomic(0);
-    return 1;
+    return check_result;
 }
 
 int  change_priority(int priority, int target_process_id)

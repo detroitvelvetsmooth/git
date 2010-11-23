@@ -162,17 +162,15 @@ void CCI()
 		temp = receive_message(); //assuming KB iProcess sends env    back to process //GETS THE MESSAGE BACK FROM THE KEYBOARD IPROCESS.
 /*		printf("CCI: Our Message back from KBD: %s\n", temp->messageText);*/
 		
+		while(strcmp(temp->messageText, "\0")==0){
+			get_console_chars(temp);
+			temp = receive_message();
+		}
+
 		if(temp->messageType != MSGCONSOLEINPUT){
 			strcpy(temp->messageText, "Message sent to CCI that was not from keyboard. Message ignored.\0");
 			send_console_chars(temp);
 			temp = receive_message();
-		}
-
-		else if(strcmp(temp->messageText, "\0")==0) 
-		{  
-/* 			DOES NOTHING	*/
-/*			send_console_chars(temp);*/
-/*			temp = receive_message();*/
 		}
 		else if(strcmp(temp->messageText, "s\0")==0)
 		{ 
@@ -284,11 +282,9 @@ void WallClock(){
 			send_console_chars(temp);
 			temp = receive_message();
 			//temp->messageType = MSGTYPEWAKEUP;  
-						printf("Wall Clock received message back from CRT.\n");
-			request_delay(10, temp);
-			temp = receive_message();
-			printf("Wall Clock received message back from iProcessalarm.\n");
-        }        
+			}
+		request_delay(10, temp);
+		temp = receive_message();
 		release_processor();
      }while(1);
 }

@@ -16,8 +16,8 @@
 
 // The libraries included here will be common to all files. If a particular file requires additional libraries they will be imported on the fly.
 
-#define BUFFERSIZE 500 //will be used by the shared memory of the keyboard and CRT processes.
-#define MAXCHAR 400	 // specifies the buffer length for the shared memory.
+#define BUFFERSIZE 1200 //will be used by the shared memory of the keyboard and CRT processes.
+#define MAXCHAR 1100	 // specifies the buffer length for the shared memory.
 #define MAXTRACEBUFFER 16 // Maximum number of entries in trace buffers
 
 #define alarmDelayTime 	900000 //delays 10 seconds
@@ -135,7 +135,6 @@ struct messageEnvelope* ptrMessageTail;  //will be used as pointers to the head 
 struct Buffer{
 	int completedFlag;
 	char data[MAXCHAR];
-	int bufferLength;
 };
 
 struct traceBuffer{
@@ -158,7 +157,7 @@ struct messageEnvelope
 	int sleepTicks; // WILL BE USED TO SPECIFY HOW MANY TICKS ARE REMAINING IF A PROCESS IS SLEEPING.
 	int messageType; //NOT sure of what type of messages we will have. we will probably use global variables as well.
 	char messageTimeStamp[10]; // contain the time when the message was sent.
-	char messageText[512];  //contains the actual message. It will be in string format and it could subsequently be parsed.
+	char messageText[MAXCHAR];  //contains the actual message. It will be in string format and it could subsequently be parsed.
 };
 
 struct PCB{
