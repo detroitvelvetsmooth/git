@@ -8,7 +8,7 @@
 into a linked list. Then once the PCBs are created it should
 */
 
-#define processStackSize 16384
+#define processStackSize (2*16384)
 #define processStackOffset 4
 
 struct PCB * initializeProcessPCB(){

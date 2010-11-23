@@ -73,6 +73,7 @@ int TimingListEnqueue(struct messageEnvelope* env){
     }
     
 void iProcessAlarm(){
+/*	 printf("Turning Atomic ON - iProcessAlarm\n");*/
     atomic(1);
     struct PCB* temp = ptrCurrentExecuting;
     ptrCurrentExecuting = getPCB(PIDiProcessTimer);
@@ -98,12 +99,12 @@ void iProcessAlarm(){
         }
     }   
     ptrCurrentExecuting = temp;
-   //preemptive();
    atomic(0);
 }
 
-	void iProcessCRT(){ 
-	
+void iProcessCRT(){ 
+
+/*	printf("Turning atomic ON - iProcessCRT\n");*/
 	atomic(1);
 	//Change current executing pcb to iProcessCRT's PCB
 	struct PCB * temp = ptrCurrentExecuting; 
@@ -116,7 +117,7 @@ void iProcessAlarm(){
 		if(outputMsg == NULL){
 		}
 		else{
-			strcpy((*CRTSharedMemPointer).data, outputMsg->messageText);
+			strcpy((*CRTSharedMemPointer).data, outputMsg->messageText); //copies the brand new message to the memory buffer. 
 			(*CRTSharedMemPointer).completedFlag = 1;
 		}
 	}
@@ -133,7 +134,8 @@ void iProcessAlarm(){
 	}
 	ptrCurrentExecuting = temp; //Reset to the current executing process.
 	//preemptive();
-atomic(0);
+/*	printf("Turning atomic OFF - iProcessCRT\n");*/
+	atomic(0);
 }
 
 

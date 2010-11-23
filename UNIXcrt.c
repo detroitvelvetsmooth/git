@@ -48,8 +48,14 @@ int main (int argc, char * argv[]){
 		{
 			printf("\nSignalling RTX to tend to Output Buffer.\n");
 			kill(parent_id, SIGUSR1);
+<<<<<<< HEAD
 			usleep(5000);
 		}
+=======
+		}*/
+		kill(parent_id, SIGUSR1); //remove this line when atomicity is working.
+	
+>>>>>>> 62923be5dffbb140a305eb9cea23a511d01db8bf
 	}while(1);
 	printf("AN ISSUE HAS OCCURED WITHIN THE UNIX CRT PROCESS");
 }
