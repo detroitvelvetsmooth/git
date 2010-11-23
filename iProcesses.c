@@ -12,13 +12,15 @@ void preemptive(){
 			ptr = ptrPCBReadyLow->queueHead;
 			if(ptr == NULL){
 				ptr = ptrPCBReadyNull->queueHead;
-									} } }
+			}
+		}
+	}
 	if(ptr != NULL){//If process being interupted is NOT NULL process
 		if(ptrCurrentExecuting->processPriority > ptr->processPriority){//If a Ready Process exists of higher priority
 			k_release_processor();
 			printf("Preempted\n");
 			return;
-    }
+		}
 	}
 }
 		
@@ -36,12 +38,15 @@ struct messageEnvelope* TimingListDequeue(){
 
 int TimingListEnqueue(struct messageEnvelope* env){
 	
-    if (env != NULL){
-		if(ptrTimingList == NULL){//case 1: TimingQueue is empty
-			ptrTimingList = env;
-			env->ptrNextMessage = NULL;
-			return 1;
-        }
+	if (env == NULL)
+		return 0;
+    
+	env->ptrNextMessage = NULL;
+
+	if(ptrTimingList == NULL){//case 1: TimingQueue is empty
+		ptrTimingList = env;
+		return 1;
+    }
        
     struct messageEnvelope* temporary = NULL;
     temporary = ptrTimingList; //TEMPORARY POINTS TO THE FRONT OF THE LIST.
@@ -56,27 +61,27 @@ int TimingListEnqueue(struct messageEnvelope* env){
     env->sleepTicks = env->sleepTicks - temporary->sleepTicks;
 
     while (temporary->ptrNextMessage != NULL){//Case 3: general insertion. Loop through till empty.
-        if(env->sleepTicks >= temporary->ptrNextMessage->sleepTicks) //Or exit if position found
+        if(env->sleepTicks < temporary->ptrNextMessage->sleepTicks) //Or exit if position found
 			break;
 		env->sleepTicks = env->sleepTicks - temporary->ptrNextMessage->sleepTicks;
         temporary = temporary->ptrNextMessage;
     }
-        env->ptrNextMessage = temporary->ptrNextMessage;
-        temporary->ptrNextMessage = env;
-        if (env->ptrNextMessage)
-            env->ptrNextMessage->sleepTicks = env->ptrNextMessage->sleepTicks - env->sleepTicks;
-        return 1;
-    }
-    return 0;//case 5: if env is NULL
-    }
+    env->ptrNextMessage = temporary->ptrNextMessage;
+    temporary->ptrNextMessage = env;
+	if (env->ptrNextMessage != NULL)
+       env->ptrNextMessage->sleepTicks = env->ptrNextMessage->sleepTicks - env->sleepTicks;
+    return 1;
+}
     
 void iProcessAlarm(){
 /*	 printf("Turning Atomic ON - iProcessAlarm\n");*/
     atomic(1);
+	ptrCurrentExecuting->CPUControl ++;
     struct PCB* temp = ptrCurrentExecuting;
     ptrCurrentExecuting = getPCB(PIDiProcessTimer);
     absoluteTime++;
     relativeTime++;
+	
    
     struct messageEnvelope* env = NULL;
        
@@ -89,17 +94,20 @@ void iProcessAlarm(){
        
     if (ptrTimingList != NULL){
         ptrTimingList->sleepTicks --;
+		/*struct messageEnvelope* tempenv;
+		tempenv = ptrTimingList;
+		while(tempenv!=NULL){
+			printf("Message Envelope for Process %s sleep ticks are %d.\n", debugProcessName(tempenv->PIDSender), tempenv->sleepTicks);
+			tempenv = tempenv->ptrNextMessage;
+		}*/
 				//printf("WallClock sleepTicks: %d\n", ptrTimingList->sleepTicks);
-        while (ptrTimingList!=NULL && ptrTimingList->sleepTicks == 0){//what if two are 0? do-while?
+        while (ptrTimingList!=NULL && ptrTimingList->sleepTicks <= 0){//what if two are 0? do-while?
             env = TimingListDequeue();//returns env ptr
             env->messageType = MSGTYPEWAKEUP;
             k_send_message(env->PIDSender,env);
         }
     }   
     ptrCurrentExecuting = temp;
-//   preemptive();
-
-/*   printf("Turning Atomic OFF - iProcessAlarm\n");*/
    atomic(0);
 }
 
@@ -127,7 +135,7 @@ void iProcessCRT(){
 	else{//The UNIXCRT has signalled the RTX to let it know it has emptied and printed the buffer.
 		outputMsg->messageType = MSGTYPEACK;
 		k_send_message(outputMsg->PIDSender, outputMsg); //Send aknowledgement message to the process with the fulfilled request
-		outputMsg = k_receive_message(); //Check if there are more messages to be outputed.
+		outputMsg = k_receive_message(); //Check if there are more messages to be outputted.
 		if (outputMsg != NULL){ //If there are, copy to buffer.
 			strcpy((*CRTSharedMemPointer).data, outputMsg->messageText);
 			(*CRTSharedMemPointer).completedFlag = 1;
