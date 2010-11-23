@@ -68,7 +68,6 @@ void ProcessB(){
 
 void ProcessC(){
      
-     
 /*     printf("Entered Process C\n");*/
      struct messageEnvelope* CEnv;
      int status, count;
@@ -76,8 +75,9 @@ void ProcessC(){
      //Start infinite loop.
      do{
         //Check local queue for waiting messages. Dequeue a waiting message, otherwise receive message.
-        if(ProcessCQHead==NULL)  //CHECKS TO SEE IF IT IS EMPTY
+		 if(ProcessCQHead==NULL){  //CHECKS TO SEE IF IT IS EMPTY
             CEnv = receive_message();
+		 }
         else
             CEnv = CDequeue();       //RETURNS MESAGE FROM LOCAL QUEUE. 
             //Check messagetype to make sure its from process B.

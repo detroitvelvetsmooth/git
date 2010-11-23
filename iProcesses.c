@@ -12,13 +12,15 @@ void preemptive(){
 			ptr = ptrPCBReadyLow->queueHead;
 			if(ptr == NULL){
 				ptr = ptrPCBReadyNull->queueHead;
-									} } }
+			}
+		}
+	}
 	if(ptr != NULL){//If process being interupted is NOT NULL process
 		if(ptrCurrentExecuting->processPriority > ptr->processPriority){//If a Ready Process exists of higher priority
 			k_release_processor();
 			printf("Preempted\n");
 			return;
-    }
+		}
 	}
 }
 		
@@ -96,7 +98,7 @@ void iProcessAlarm(){
         }
     }   
     ptrCurrentExecuting = temp;
-   preemptive();
+   //preemptive();
    atomic(0);
 }
 
@@ -123,7 +125,7 @@ void iProcessAlarm(){
 	else{//The UNIXCRT has signalled the RTX to let it know it has emptied and printed the buffer.
 		outputMsg->messageType = MSGTYPEACK;
 		k_send_message(outputMsg->PIDSender, outputMsg); //Send aknowledgement message to the process with the fulfilled request
-		outputMsg = k_receive_message(); //Check if there are more messages to be outputed.
+		outputMsg = k_receive_message(); //Check if there are more messages to be outputted.
 		if (outputMsg != NULL){ //If there are, copy to buffer.
 			strcpy((*CRTSharedMemPointer).data, outputMsg->messageText);
 			(*CRTSharedMemPointer).completedFlag = 1;

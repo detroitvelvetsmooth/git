@@ -419,16 +419,18 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 /////////////PRIMITIVE HELPER FUNCTIONS //////////////////////
 
 void context_switch(struct PCB* next_PCB){
+	atomic(0); //Turn off atomic before jump
 	int return_code = setjmp(ptrCurrentExecuting->contextBuffer);
 	
 	if(return_code == 0){
 	ptrCurrentExecuting = next_PCB;
 	longjmp(ptrCurrentExecuting->contextBuffer,1);//will it work on next_PCB's 1st execution? IT SHOULD NOW. 
 	}
+	atomic(1); //Turn on atomic after jump
 }
 
 void atomic(int on) {
-     /*
+/*     
     static sigset_t oldmask;
     sigset_t newmask;
     if (on) {
@@ -448,7 +450,7 @@ void atomic(int on) {
             sigprocmask(SIG_SETMASK, &oldmask, NULL);
          }
     }
-    */
+*/    
 }
 
 struct PCB * getPCB(int findPID)
@@ -571,8 +573,8 @@ void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber){
 	if(traceBufferNumber == 0){//Add to send traceBuffer
 		sendTraceBuffer->tail++;
 		sendTraceBuffer->tail = sendTraceBuffer->tail%16; //Move to row for new entry
-		sendTraceBuffer->data[sendTraceBuffer->tail][0] = temp->PIDReceiver;
-		sendTraceBuffer->data[sendTraceBuffer->tail][1] = temp->PIDSender;
+		sendTraceBuffer->data[sendTraceBuffer->tail][0] = temp->PIDSender;
+		sendTraceBuffer->data[sendTraceBuffer->tail][1] = temp->PIDReceiver;
 		sendTraceBuffer->data[sendTraceBuffer->tail][2] = temp->messageType;
 		sendTraceBuffer->data[sendTraceBuffer->tail][3] = time;
 		
@@ -586,8 +588,8 @@ void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber){
 	else{
 		receiveTraceBuffer->tail ++; //Shift tail down now
 		receiveTraceBuffer->tail = receiveTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
-		receiveTraceBuffer->data[receiveTraceBuffer->tail][0] = temp->PIDReceiver;
-		receiveTraceBuffer->data[receiveTraceBuffer->tail][1] = temp->PIDSender;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][0] = temp->PIDSender;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][1] = temp->PIDReceiver;
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][2] = temp->messageType;
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = time;
 
