@@ -21,6 +21,7 @@ void ProcessA(){
 /*	 printf("Entered Process A\n");*/
 
      struct messageEnvelope* start;
+    
      start = receive_message();
      //Check for start message sent by CCI
      
@@ -50,6 +51,8 @@ void ProcessA(){
 
 void ProcessB(){
 
+
+
 /*	printf("Entered Process B\n");*/
 
     struct messageEnvelope* BTemp;
@@ -58,6 +61,8 @@ void ProcessB(){
      do{
         //Receive message and send to process C, then release processor.
         BTemp = receive_message();
+               
+            
         status = send_message(PIDUserProcessC, BTemp);
         if (status!=1)
            printf("\n Send_Message failed from ProcessB to ProcessC\n");
@@ -90,7 +95,7 @@ void ProcessC(){
             
             if (count%20 == 0 &&count!= 0){ // means it is divisible.
                strcpy(CEnv->messageText, "Process C\0");
-            
+               
                status = send_console_chars(CEnv);
                if (status != 1)
                   printf("\nSend_console_chars failed for Process C. ERROR.\n");
@@ -123,7 +128,8 @@ void ProcessC(){
 }
 
 void NullProcess(){
-//Infinite Loop
+//Infinite Loop    
+            
      do{
 
 	//	 printf("....I'm the null process...and my priority:%d\n", ptrCurrentExecuting->processPriority);

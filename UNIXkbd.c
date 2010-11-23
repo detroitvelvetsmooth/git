@@ -45,6 +45,7 @@ int main (int argc, char * argv[]){
 /*			printf("UNIXkbd says: Input received. Notifying keyboardIprocess\n");*/
 /*			fflush(stdout); */
 			kill(parent_id, SIGUSR2); //sends signal to the mainRTX.
+			
 /*			while (input_mem_p->completedFlag == 1){
 				kill(parent_id, SIGUSR2);
 				usleep(500);

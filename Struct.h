@@ -66,7 +66,7 @@ void WallClock();
 void iProcessCRT();
 void cleanup();
 char * debugProcessName(int PID);
- char processName[1];
+char processName[1];
 char * debugMessageType(int Type);
  char msg[1];
 
@@ -97,8 +97,8 @@ struct messageEnvelope* ptrTimingList; // will be a  pointer to a linked list th
 
 ////////////// TRACE BUFFERS ///////////////////
 
-struct traceBuffer* sendTraceBuffer;		// [0] will be PID, [1] will be state, and [2] will be priority
-struct traceBuffer* receiveTraceBuffer; // for the time being the trace buffers will be 2 dimensional arrays  but these could later change to an array of structs.
+struct traceBuffer* sendTraceBuffer;		
+struct traceBuffer* receiveTraceBuffer; 
 
 ///////////////// GENERAL PCB LIST ///////////////////
 struct PCB* ptrCurrentExecuting; //will point to the currently executing Process.

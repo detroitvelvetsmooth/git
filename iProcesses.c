@@ -71,6 +71,7 @@ int TimingListEnqueue(struct messageEnvelope* env){
     }
     
 void iProcessAlarm(){
+	 printf("about to call atomicity Alarm\n");
     atomic(1);
     struct PCB* temp = ptrCurrentExecuting;
     ptrCurrentExecuting = getPCB(PIDiProcessTimer);
@@ -100,8 +101,9 @@ void iProcessAlarm(){
    atomic(0);
 }
 
-	void iProcessCRT(){ 
-	
+void iProcessCRT(){ 
+
+	printf("about to call atomicty CRT\n");
 	atomic(1);
 	//Change current executing pcb to iProcessCRT's PCB
 	struct PCB * temp = ptrCurrentExecuting; 

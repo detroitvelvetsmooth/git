@@ -378,12 +378,20 @@ int k_terminate()
 int k_get_trace_buffers( struct messageEnvelope * temp){
 	if(temp == NULL)
 		return -1;
-	int tempCount= sendTraceBuffer->head;
+	int tempCount= sendTraceBuffer->head; //TEMP count contains the number of messages. 
 	char bufferTemp[255];
 	int receive, send, msgType, time;
 	int done = 0;
 	int count = sendTraceBuffer->head;
-	strcpy(temp->messageText, "Sent\nSender\tReceiver\tType\tTime\n");	
+	char format[100];
+	char string1[10]= "Sender";
+	char string2[10]= "Receiver";
+	char string3[10]= "Type";
+	char string4[10]= "Time";
+	sprintf(format,"Sent\n%s%11s%5s%8s\n",string1, string2,string3,string4); //trying to improve the format of the output.
+		
+	strcpy(temp->messageText, format);	
+	
 	if(sendTraceBuffer->head != -1){
 		do{
 			//count++;
@@ -392,7 +400,7 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 			send = sendTraceBuffer->data[tempCount][1];
 			msgType = sendTraceBuffer->data[tempCount][2];
 			time = sendTraceBuffer->data[tempCount][3];
-			sprintf(bufferTemp, "%d\t%d\t%d\t%d\n", receive, send, msgType, time);
+			sprintf(bufferTemp, "%d%9d%9d%11d\n", receive, send, msgType, time);
 			tempCount = tempCount +1;
 			//printf("tempCount: %d\n", tempCount);
 			tempCount= (tempCount)%16;
@@ -401,14 +409,15 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 		}while(tempCount != ((sendTraceBuffer->tail + 1)%16));//Stop iteration once it has reached tail
 	}
 	tempCount = receiveTraceBuffer->head;
-	strcat(temp->messageText, "\nReceive\nSender\tReceiver\tType\tTime\n");
+	sprintf(format,"Receive\n%s%11s%5s%8s\n",string1, string2,string3,string4);
+	strcat(temp->messageText,format);
 	if(receiveTraceBuffer->head != -1){
 		do{
 			receive = receiveTraceBuffer->data[tempCount][0];
 			send =  receiveTraceBuffer->data[tempCount][1];
 			msgType =  receiveTraceBuffer->data[tempCount][2];
 			time =  receiveTraceBuffer->data[tempCount][3];
-			sprintf(bufferTemp, "%d\t%d\t%d\t%d\n", receive, send, msgType, time);
+			sprintf(bufferTemp, "%d%9d%9d%11d\n", receive, send, msgType, time);
 			tempCount = (tempCount+1)%16;
 			strcat(temp->messageText, bufferTemp);
 		}while(tempCount != ((receiveTraceBuffer->tail +1)%16));//Stop iteration once it has reached tail
@@ -428,10 +437,11 @@ void context_switch(struct PCB* next_PCB){
 }
 
 void atomic(int on) {
-     /*
+	printf("atomic was called\n");
+     
     static sigset_t oldmask;
-    sigset_t newmask;
-    if (on) {
+    	   sigset_t newmask;
+    if (on==1) {
        atomic_count++;
        if (atomic_count == 1) { //Check to see if atomic isn't already on
           sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
@@ -448,7 +458,7 @@ void atomic(int on) {
             sigprocmask(SIG_SETMASK, &oldmask, NULL);
          }
     }
-    */
+    
 }
 
 struct PCB * getPCB(int findPID)

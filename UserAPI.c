@@ -28,7 +28,7 @@ int  send_message(int dest_process_id, struct messageEnvelope* temp )
 struct messageEnvelope* receive_message()
 {
 	atomic(1);
- struct messageEnvelope *temp;
+ 	struct messageEnvelope *temp;
 	temp = k_receive_message();
 	atomic(0);
    return temp;
