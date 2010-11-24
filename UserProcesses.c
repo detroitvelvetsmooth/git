@@ -18,6 +18,7 @@ struct messageEnvelope* CDequeue();
 
 void ProcessA(){
 
+
 /*	 printf("Entered Process A\n");*/
      struct messageEnvelope* start;
     
@@ -91,7 +92,6 @@ void ProcessC(){
             //we don't want to display the very first one
             
             if (count%20 == 0 && count!= 0){ // means it is divisible.
-				printf("Count is : %d\n",count);
 				strcpy(CEnv->messageText, "Process C\0");
                
                status = send_console_chars(CEnv);
@@ -134,6 +134,7 @@ void NullProcess(){
 }
 void CCI()
 {
+
    	int sentS=0;
 	int hour, min, sec;
 	int newPri, PID;

@@ -106,6 +106,7 @@ struct messageEnvelope* ptrTimingList; // will be a  pointer to a linked list th
 struct traceBuffer* sendTraceBuffer;		
 struct traceBuffer* receiveTraceBuffer; 
 
+
 ///////////////// GENERAL PCB LIST ///////////////////
 struct PCB* ptrCurrentExecuting; //will point to the currently executing Process.
 struct PCB* ptrPCBList; //ptr that will link to the PCB list (which will remain somewhat static once initialized

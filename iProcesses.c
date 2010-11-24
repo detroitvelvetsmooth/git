@@ -76,7 +76,10 @@ int TimingListEnqueue(struct messageEnvelope* env){
 void iProcessAlarm(){
 /*	 printf("Turning Atomic ON - iProcessAlarm\n");*/
     atomic(1);
-	ptrCurrentExecuting->CPUControl ++;
+	ptrCurrentExecuting->CPUControl ++; //updates the currently executing process with the time. THIS METHOD IS FLAWED, BECAUSE IPROCESSES WILL NEVER BE UPDATED 
+										// SINCE THEY HAVE ATOMICITY, ALSO IF A PROCESS IS BEING EXECUTED AND HAS ATOMIC ON AND A SIGNAL IS RECEIVED IT WILL NOT BE UDPATED. 
+	
+	
     struct PCB* temp = ptrCurrentExecuting;
     ptrCurrentExecuting = getPCB(PIDiProcessTimer);
     absoluteTime++;
