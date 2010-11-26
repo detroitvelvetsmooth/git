@@ -152,11 +152,9 @@ void CCI()
 		send_console_chars(temp);
 		
 		temp = receive_message(); //GETS THE MESSAGE BACK FROM THE CRT. 
-/*		printf("CCI: Our Message back from CRT: %s\n", temp->messageText);*/
 		
 		get_console_chars(temp);
 		temp = receive_message(); //assuming KB iProcess sends env    back to process //GETS THE MESSAGE BACK FROM THE KEYBOARD IPROCESS.
-/*		printf("CCI: Our Message back from KBD: %s\n", temp->messageText);*/
 		
 		while(strcmp(temp->messageText, "\0")==0){
 			get_console_chars(temp);
@@ -194,10 +192,23 @@ void CCI()
 	
 		else if(strcmp(temp->messageText, "cd\0")==0)
 		{    
+			if(displayWallClock)
+			{		
+					strcpy(temp->messageText, "Wall Clock is already on.\0");
+					send_console_chars(temp);
+					temp = receive_message();
+			}
 			displayWallClock=1;//change flag of wall clock to send time to CRT every second
 		}
 		else if(strcmp(temp->messageText, "ct\0")==0)
 		{
+			if(!displayWallClock)
+			{		
+					strcpy(temp->messageText, "Wall Clock is already OFF.\0");
+					send_console_chars(temp);
+					temp = receive_message();
+			}
+		
 			displayWallClock=0;//change flag of wall clock to stop sending time to CRT
 		}
 		else if(temp->messageText[0] == 'c' && temp->messageText[1] == ' ')
@@ -226,7 +237,7 @@ void CCI()
 			send_console_chars(temp);
 			temp = receive_message();
 		}
-		else if(strcmp(temp->messageText, "t\0")==0)
+		else if(strcmp(temp->messageText, "t\0")==0||strcmp(temp->messageText, "exit\0")==0)
 		{
 			terminate();
 		}
@@ -286,7 +297,7 @@ void WallClock(){
 			}
 		request_delay(10, temp);
 		temp = receive_message();
-		release_processor();
+		release_processor(); //is this release processor even necessary ?it will be blocked on receive anyways... 
      }while(1);
 }
 ///////////////////// USER PROCESSES HELPER FUNCTIONS ////////////
