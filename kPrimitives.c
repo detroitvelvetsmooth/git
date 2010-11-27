@@ -437,7 +437,7 @@ void context_switch(struct PCB* next_PCB){
 }
 
 void atomic(int on) {
-	printf("atomic was called\n");
+	//printf("atomic was called\n");
      
     static sigset_t oldmask;
     	   sigset_t newmask;

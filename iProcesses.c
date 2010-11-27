@@ -97,7 +97,7 @@ void iProcessAlarm(){
         }
     }   
     ptrCurrentExecuting = temp;
-   preemptive();
+   //preemptive();
    atomic(0);
 }
 
