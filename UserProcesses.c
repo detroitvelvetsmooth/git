@@ -18,8 +18,8 @@ struct messageEnvelope* CDequeue();
 
 void ProcessA(){
 
-/*	 printf("Entered Process A\n");*/
 
+/*	 printf("Entered Process A\n");*/
      struct messageEnvelope* start;
     
      start = receive_message();
@@ -60,9 +60,7 @@ void ProcessB(){
      //Start infinte loop
      do{
         //Receive message and send to process C, then release processor.
-        BTemp = receive_message();
-               
-            
+        BTemp = receive_message();               
         status = send_message(PIDUserProcessC, BTemp);
         if (status!=1)
            printf("\n Send_Message failed from ProcessB to ProcessC\n");
@@ -73,7 +71,6 @@ void ProcessB(){
 
 void ProcessC(){
      
-     
 /*     printf("Entered Process C\n");*/
      struct messageEnvelope* CEnv;
      int status, count;
@@ -81,20 +78,21 @@ void ProcessC(){
      //Start infinite loop.
      do{
         //Check local queue for waiting messages. Dequeue a waiting message, otherwise receive message.
-        if(ProcessCQHead==NULL)  //CHECKS TO SEE IF IT IS EMPTY
+		 if(ProcessCQHead==NULL){  //CHECKS TO SEE IF IT IS EMPTY
             CEnv = receive_message();
+		 }
         else
             CEnv = CDequeue();       //RETURNS MESAGE FROM LOCAL QUEUE. 
             //Check messagetype to make sure its from process B.
        
         if (CEnv->messageType == MSGTYPECOUNT){
-            //If message content is devisable by 20 then continue.
+            //If message content is divisable by 20 then continue.
             sscanf(CEnv->messageText, "%d", &count); //TURNS FROM A CHARACTER ARRAY TO AN INTEGER.
             
             //we don't want to display the very first one
             
-            if (count%20 == 0 &&count!= 0){ // means it is divisible.
-               strcpy(CEnv->messageText, "Process C\0");
+            if (count%20 == 0 && count!= 0){ // means it is divisible.
+				strcpy(CEnv->messageText, "Process C\0");
                
                status = send_console_chars(CEnv);
                if (status != 1)
@@ -131,16 +129,13 @@ void NullProcess(){
 //Infinite Loop    
             
      do{
-
-	//	 printf("....I'm the null process...and my priority:%d\n", ptrCurrentExecuting->processPriority);
-
-     		sleep(2);
            release_processor();
      }while(1);
 }
 void CCI()
 {
-   
+
+   	int sentS=0;
 	int hour, min, sec;
 	int newPri, PID;
 	int check_result;
@@ -157,31 +152,36 @@ void CCI()
 		send_console_chars(temp);
 		
 		temp = receive_message(); //GETS THE MESSAGE BACK FROM THE CRT. 
-/*		printf("CCI: Our Message back from CRT: %s\n", temp->messageText);*/
-	
+		
 		get_console_chars(temp);
 		temp = receive_message(); //assuming KB iProcess sends env    back to process //GETS THE MESSAGE BACK FROM THE KEYBOARD IPROCESS.
-/*		printf("CCI: Our Message back from KBD: %s\n", temp->messageText);*/
 		
+		while(strcmp(temp->messageText, "\0")==0){
+			get_console_chars(temp);
+			temp = receive_message();
+		}
+
 		if(temp->messageType != MSGCONSOLEINPUT){
 			strcpy(temp->messageText, "Message sent to CCI that was not from keyboard. Message ignored.\0");
 			send_console_chars(temp);
 			temp = receive_message();
 		}
-
-		else if(strcmp(temp->messageText, "\0")==0) 
-		{  
-/* 			DOES NOTHING	*/
-/*			send_console_chars(temp);*/
-/*			temp = receive_message();*/
-		}
 		else if(strcmp(temp->messageText, "s\0")==0)
-		{    
-           	struct messageEnvelope * messageForProcess = NULL;
-            messageForProcess = request_message_env();
-			strcpy(messageForProcess->messageText,temp->messageText);
-			send_message((int)(PIDUserProcessA), messageForProcess);
-			release_processor(); 
+		{ 
+			if(sentS==0){
+			
+           		struct messageEnvelope * messageForProcess = NULL;
+				messageForProcess = request_message_env();
+				strcpy(messageForProcess->messageText,temp->messageText);
+				send_message((int)(PIDUserProcessA), messageForProcess);
+				sentS = 1;
+				release_processor(); 
+			}
+			else{
+				strcpy(temp->messageText, "Process A has already been started.\0");
+				send_console_chars(temp);
+				temp = receive_message();
+			}
 		}
 		else if(strcmp(temp->messageText, "ps\0")==0)
 		{
@@ -192,10 +192,23 @@ void CCI()
 	
 		else if(strcmp(temp->messageText, "cd\0")==0)
 		{    
+			if(displayWallClock)
+			{		
+					strcpy(temp->messageText, "Wall Clock is already on.\0");
+					send_console_chars(temp);
+					temp = receive_message();
+			}
 			displayWallClock=1;//change flag of wall clock to send time to CRT every second
 		}
 		else if(strcmp(temp->messageText, "ct\0")==0)
 		{
+			if(!displayWallClock)
+			{		
+					strcpy(temp->messageText, "Wall Clock is already OFF.\0");
+					send_console_chars(temp);
+					temp = receive_message();
+			}
+		
 			displayWallClock=0;//change flag of wall clock to stop sending time to CRT
 		}
 		else if(temp->messageText[0] == 'c' && temp->messageText[1] == ' ')
@@ -224,7 +237,7 @@ void CCI()
 			send_console_chars(temp);
 			temp = receive_message();
 		}
-		else if(strcmp(temp->messageText, "t\0")==0)
+		else if(strcmp(temp->messageText, "t\0")==0||strcmp(temp->messageText, "exit\0")==0)
 		{
 			terminate();
 		}
@@ -263,6 +276,7 @@ void CCI()
 }
 
 void WallClock(){
+
      struct messageEnvelope* temp;//temp is out temporary time env
      temp = request_message_env();
      int math, hour, min, sec;
@@ -275,15 +289,15 @@ void WallClock(){
 			math %= 3600;
 			min = math / 60;
 			sec = math % 60;
-			sprintf (time,"%02d:%02d:%02d\0",hour,min,sec); 
+			sprintf (time,"%02d:%02d:%02d",hour,min,sec); 
 			strcpy(temp->messageText,time);
 			send_console_chars(temp);
 			temp = receive_message();
 			//temp->messageType = MSGTYPEWAKEUP;  
-			request_delay(10, temp);
-			temp = receive_message();
-        }        
-		release_processor();
+			}
+		request_delay(10, temp);
+		temp = receive_message();
+		release_processor(); //is this release processor even necessary ?it will be blocked on receive anyways... 
      }while(1);
 }
 ///////////////////// USER PROCESSES HELPER FUNCTIONS ////////////

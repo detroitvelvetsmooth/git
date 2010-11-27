@@ -37,19 +37,14 @@ int main (int argc, char * argv[]){
 
 		while(output_mem_p->completedFlag == 0) //Buffer Full, Wait until buffer is empty
 			usleep(500);
-     
         strcpy(output_text, output_mem_p->data);
 		printf("\n%s", output_text);
 /*		printf("\nUNIXcrt says: %s", output_text);*/
 		fflush(stdout); //FLUSHES TO THE SCREEN.
 		output_mem_p->completedFlag = 0;
-		output_mem_p->bufferLength = 0;
-/*		while(output_mem_p->completedFlag==1) //WANT TO MAKE SURE THAT RTX RECEIVES THE SIGNAL IN CASE OF ATOMICITY
-		{
-			usleep(250);
-			kill(parent_id, SIGUSR1);
-		}*/
 		kill(parent_id, SIGUSR1); //remove this line when atomicity is working.
+	
+
 	}while(1);
 	printf("AN ISSUE HAS OCCURED WITHIN THE UNIX CRT PROCESS");
 }

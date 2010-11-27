@@ -8,7 +8,6 @@ other. Processes.h will contain the function prototypes for every process (user 
 
 int main() {
 
-
     //Every major process will be split into separate files.
     
 /////////////// TIMING IPROCESS /////////////
@@ -19,6 +18,11 @@ displayWallClock= 0;
 
 atomic_count = 0;
 ptrTimingList=NULL; // pointer to messages that have the timing countdown. 
+
+///////////ATOMICITY ///////////////
+atomicCount = 0;
+//oldmask = NULL;
+//newmask = NULL; //UNSURE IF THIS IS HOW YOU DEFINE IT. 
 
 
 ///////////// GENERAL PCB LIST /////////////////////////
@@ -90,9 +94,9 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
    
      initializeProcessContext();  //Will actually initialize the context of each method.
      initializeProcessReadyQueue();
-	 
+	
 	 longjmp(ptrCurrentExecuting->contextBuffer,1);//WILL JUMP TO THE FIRST EXECUTION.	
-	 
+	
 	 printf("In Main: Made the jump to first process and came back: FATAL ERROR - cleaning up\n");
 	
 	cleanup(); // execute cleanup if for some reason it made it here. This should not be executed

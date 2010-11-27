@@ -22,8 +22,7 @@ void k_process_switch(){
 
  struct	PCB* next_PCB = ReadyProcessDequeue(); //finds the next pcb to execute with the highest priority.
 	next_PCB->PCBState = EXECUTING;
-	//printf("k_process_switch: Switching To: %s\n", debugProcessName(next_PCB->PID));
-	//ptrCurrentExecuting = next_PCB; // CONTEXT SWITCH ONLY WORKS WHEN WE PASS IN PTRCURRENTEXECUTING BECAUSE THATS HOW THE CONTEXT WAS INITIALIZED.
+/*	printf("k_process_switch: Switching To: %s\n", debugProcessName(next_PCB->PID));*/
 																	
 	context_switch(next_PCB);// SINCE PTRCURRENTEXECUTING IS A GLOBAL PARAMETER WE DON'T NEED TO PASS IT IN. HOWEVER WE MUST MAKE SURE THAT IT IS POINTING TO WHAT WE WANT TO EXECUTE.->Or for this case, pointing to what used to be executing
 }
@@ -40,8 +39,9 @@ struct messageEnvelope* k_request_message_env( ){
       if(result !=1)
       printf("In k_request_message_env: Enqueue function failed to return correctly\n");
       
-      
+      atomic(0); //need to fix atomic on/off because you are jumping to another place
       k_process_switch(); 
+      atomic(1);
     }
    
     temp = ptrMessage;
@@ -226,7 +226,9 @@ struct messageEnvelope* k_receive_message( )
        if (result != 1)
            printf("Inside k_receive_message_env: The invoking PCB is meant to be blocked. The Enqueue function was unable to enqueue the PCB to the Blocked on Receive Q.\n");
        
+       atomic(0); //MAY OR MAY NOT WORK
        k_process_switch();//Call Process_switch();
+       atomic(1);	// MAY OR MAY NOT WORKS
    }   
    
     if(ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage==NULL) //Inbox is size 1
@@ -281,8 +283,9 @@ int  k_release_processor( )
 	else if(ptrCurrentExecuting->processPriority == NULL_PRIORITY)
 	Enqueue(ptrCurrentExecuting,ptrPCBReadyNull);
 	
-
+	atomic(0);
 	k_process_switch();
+	atomic(1);
 	return 1;
 }
 
@@ -292,23 +295,27 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
         return NULL;
 
 	int PID, Priority, State;
+	int control;
+	
+	
 	char ps[255]; //the string to be populated
-
-    strcpy(ps, "PID\tPri\tState\n"); //MAKES THE HEADERS FOR THE COLUMNS.
+    strcpy(ps, "PID\tPri\tState\tCPU %\n"); //MAKES THE HEADERS FOR THE COLUMNS.
     
     struct PCB *process; //temporary PCB that loops through
     process = ptrPCBList; //initializes loop pointing to the first PCB
-	char tempPS[32]; //I DON'T KNOW IF THIS SIZE IS RIGHT. EITHER WAY IT WILL BE RESIZED BY SPRINTF. 
-
+	char tempPS[32]; //I DON'T KNOW IF THIS SIZE IS RIGHT. EITHER WAY IT WILL BE RESIZED BY SPRINTF
+	
+	
     while(process != NULL)
     {
 		PID = process->PID;
 		Priority = process->processPriority;
 		State = process->PCBState;
-		sprintf(tempPS, "%d\t%d\t%d\n", PID, Priority, State);
-		strcat(ps, tempPS);
+		control = process->CPUControl;
 		
-      	  process = process->ptrNextPCBList;
+		sprintf(tempPS, "%d\t%d\t%d\t%d\n", PID, Priority, State, (100*control)/absoluteTime);
+		strcat(ps, tempPS);
+      	process = process->ptrNextPCBList;
     }
 	strcpy(temp->messageText, ps); //TODO - WARNING. strcpy may resize our messageText if ps is too long.
 
@@ -316,9 +323,11 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
 }
 
 int  k_change_priority(int new_priority, int targetID){
-	
+	if(targetID == PIDNullProcess)
+		return 0;
+
     if (!(targetID == PIDUserProcessA || targetID == PIDUserProcessB || targetID == PIDUserProcessC
-		|| targetID == PIDcci || targetID == PIDNullProcess || targetID == PIDWallClock)
+		|| targetID == PIDcci || targetID == PIDWallClock)
 		|| !(new_priority == HIGH_PRIORITY ||new_priority == MED_PRIORITY 
 		|| new_priority == LOW_PRIORITY || new_priority == NULL_PRIORITY))
 		return -1;
@@ -381,8 +390,6 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 	int tempCount= sendTraceBuffer->head; //TEMP count contains the number of messages. 
 	char bufferTemp[255];
 	int receive, send, msgType, time;
-	int done = 0;
-	int count = sendTraceBuffer->head;
 	char format[100];
 	char string1[10]= "Sender";
 	char string2[10]= "Receiver";
@@ -428,15 +435,18 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 /////////////PRIMITIVE HELPER FUNCTIONS //////////////////////
 
 void context_switch(struct PCB* next_PCB){
+
 	int return_code = setjmp(ptrCurrentExecuting->contextBuffer);
 	
 	if(return_code == 0){
 	ptrCurrentExecuting = next_PCB;
 	longjmp(ptrCurrentExecuting->contextBuffer,1);//will it work on next_PCB's 1st execution? IT SHOULD NOW. 
 	}
+
 }
 
 void atomic(int on) {
+<<<<<<< HEAD
 	//printf("atomic was called\n");
      
     static sigset_t oldmask;
@@ -445,21 +455,31 @@ void atomic(int on) {
        atomic_count++;
        if (atomic_count == 1) { //Check to see if atomic isn't already on
           sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
+=======
+   
+	if(atomicCount==0&&on==1)  //atomic must be turned on because it was off.
+	{	
+//		printf("Atomic Turned On\n");
+		  sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
+>>>>>>> 6a8b404c674ad3de9f2f5032b71800d47b83177d
           sigaddset(&newmask, 14); //the alarm signal
           sigaddset(&newmask, 2); // the CNTRL-C
           sigaddset(&newmask, SIGUSR1);
           sigaddset(&newmask, SIGUSR2);
-          sigprocmask(SIG_BLOCK, &newmask, &oldmask); //Oldmask saves the signals being blocked
-       }
-    }
-    else {
-         atomic_count--;
-         if (atomic_count == 0) { //Check to see if atomic can be turned off
-            sigprocmask(SIG_SETMASK, &oldmask, NULL);
-         }
-    }
-    
-}
+          sigprocmask(SIG_BLOCK, &newmask, &oldmask); //Oldmask saves the signals being blocke
+	}
+	else if(atomicCount==1&&on==0) //atomicCount is 1 but we want to turn atomic off now. 
+	{
+//		printf("Atomic Turned OFF\n");
+	  	sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	}
+	
+	if(on==1) // update our values. regardless if we are turning it on or off. 
+	atomicCount++;
+	else
+	atomicCount--;
+	
+}  	   
 
 struct PCB * getPCB(int findPID)
 {
@@ -581,8 +601,8 @@ void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber){
 	if(traceBufferNumber == 0){//Add to send traceBuffer
 		sendTraceBuffer->tail++;
 		sendTraceBuffer->tail = sendTraceBuffer->tail%16; //Move to row for new entry
-		sendTraceBuffer->data[sendTraceBuffer->tail][0] = temp->PIDReceiver;
-		sendTraceBuffer->data[sendTraceBuffer->tail][1] = temp->PIDSender;
+		sendTraceBuffer->data[sendTraceBuffer->tail][0] = temp->PIDSender;
+		sendTraceBuffer->data[sendTraceBuffer->tail][1] = temp->PIDReceiver;
 		sendTraceBuffer->data[sendTraceBuffer->tail][2] = temp->messageType;
 		sendTraceBuffer->data[sendTraceBuffer->tail][3] = time;
 		
@@ -596,8 +616,8 @@ void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber){
 	else{
 		receiveTraceBuffer->tail ++; //Shift tail down now
 		receiveTraceBuffer->tail = receiveTraceBuffer->tail % 16; //If tail is outside trace buffer limits, set back to 0.
-		receiveTraceBuffer->data[receiveTraceBuffer->tail][0] = temp->PIDReceiver;
-		receiveTraceBuffer->data[receiveTraceBuffer->tail][1] = temp->PIDSender;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][0] = temp->PIDSender;
+		receiveTraceBuffer->data[receiveTraceBuffer->tail][1] = temp->PIDReceiver;
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][2] = temp->messageType;
 		receiveTraceBuffer->data[receiveTraceBuffer->tail][3] = time;
 
