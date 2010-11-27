@@ -446,7 +446,7 @@ void context_switch(struct PCB* next_PCB){
 }
 
 void atomic(int on) {
-<<<<<<< HEAD
+
 	//printf("atomic was called\n");
      
     static sigset_t oldmask;
@@ -455,13 +455,11 @@ void atomic(int on) {
        atomic_count++;
        if (atomic_count == 1) { //Check to see if atomic isn't already on
           sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
-=======
-   
+
 	if(atomicCount==0&&on==1)  //atomic must be turned on because it was off.
 	{	
 //		printf("Atomic Turned On\n");
 		  sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
->>>>>>> 6a8b404c674ad3de9f2f5032b71800d47b83177d
           sigaddset(&newmask, 14); //the alarm signal
           sigaddset(&newmask, 2); // the CNTRL-C
           sigaddset(&newmask, SIGUSR1);
@@ -479,6 +477,8 @@ void atomic(int on) {
 	else
 	atomicCount--;
 	
+}
+}
 }  	   
 
 struct PCB * getPCB(int findPID)
