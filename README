@@ -1,1 +1,48 @@
 This is our README. There are many like it, but this one is ours.
+
+compile.sh?
+execute.sh?
+run.sh?
+
+Group #4
+--------
+
+20292032 -> Jesus Zozaya
+20314521 -> Andy Vopni
+20317389 -> Ben Cousins
+20294391 -> Brian Luptak
+
+Directory Contents include (alph):
+
+Main.c
+Initialization of global variabls, default constructor of pointer structs (MsgEnv's, Queue heads & tails, etc), UNIX signal initialization, PCB context initialization, Process Ready Queue insertions, cleanup() function and debug functions
+
+Struct.h
+Definition of global constants: I/O buffersizes, MsgEnv char size, trace buffer size, UNIX signal frequency, Process priority number code, Process state number code, MsgEnv type num code, PID definition, Global variables, atomicity sigset, UNIX helper process init, struct definitions (I/O buffers, PCB Queue nodes, MsgEnv's, PCB's)
+
+UNIXcrt.c
+Creates buffer scanning and screen printing UNIX helper process for output as well as exit protocol.
+
+UNIXkbd.c
+Creates buffer scanning and keyboard inuput UNIX helper process for input as well as exit protocol.
+
+UserAPI.c
+Defines the API security layer of which user Processes may call these functions which call the secure kernel version, returning the same element. Also runs kernel primitives as atmoic.
+
+UserProcesses.c
+Holds processes A,B, and C as defined by project constraints. CCI manager as well as Wall Clock function also defined.
+
+iProcesses.c
+Defines CRT, KBD, and Alarm iProcesses for I/O buffer management, RTX timing service, and Sleeping Proc management
+
+kPrimitives.c
+Implements all Kernel primitives to handle IPC send, receive, request and release Env, atmoic function, process and contesxt switch, release processor, get & send console chars, request process status, change Process priority, request delay, terminate, Env trace buffer manegement, general Enqueue and Dequeue functions
+
+makefile
+creates object files from .c code with condole 'make' cmd
+
+publicAPI.h & publicProcesses.h
+Defines list of functions a User Process has access to
+
+
+
