@@ -295,11 +295,10 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
         return NULL;
 
 	int PID, Priority, State;
-	int control;
 	
 	
 	char ps[255]; //the string to be populated
-    strcpy(ps, "PID\tPri\tState\tCPU %\n"); //MAKES THE HEADERS FOR THE COLUMNS.
+    strcpy(ps, "PID\tPri\tState\n"); //MAKES THE HEADERS FOR THE COLUMNS.
     
     struct PCB *process; //temporary PCB that loops through
     process = ptrPCBList; //initializes loop pointing to the first PCB
@@ -311,9 +310,8 @@ struct messageEnvelope*  k_request_process_status(struct messageEnvelope * temp 
 		PID = process->PID;
 		Priority = process->processPriority;
 		State = process->PCBState;
-		control = process->CPUControl;
 		
-		sprintf(tempPS, "%d\t%d\t%d\t%d\n", PID, Priority, State, (100*control)/absoluteTime);
+		sprintf(tempPS, "%d\t%d\t%d\n", PID, Priority, State);
 		strcat(ps, tempPS);
       	process = process->ptrNextPCBList;
     }

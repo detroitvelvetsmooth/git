@@ -77,7 +77,6 @@ temporaryPCB = ptrPCBHead;
 (*temporaryPCB).ptrMessageInboxHead = NULL;
 (*temporaryPCB).ptrMessageInboxTail = NULL;
 
-(*temporaryPCB).CPUControl = 0;
 
 //(*temporaryPCB).contextBuffer;  //initializes the jmp_buf to NULL. MAY NOT BE CORRECT <TODO>
 
@@ -101,7 +100,6 @@ for(i = 1; i < numProcesses; i ++ )
 	(*temporaryPCB).ptrMessageInboxHead = NULL;
 	(*temporaryPCB).ptrMessageInboxTail = NULL;
 
-	(*temporaryPCB).CPUControl = 0;
 //	(*temporaryPCB).contextBuffer;
 
 }
