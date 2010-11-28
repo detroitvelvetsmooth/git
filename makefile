@@ -9,16 +9,16 @@ Targets = startInitializeProcess.o startMessageEnvelope.o startSignalHandling.o 
 
 .PHONY: all
 
-all: clean  primitiveRTX.o UNIXcrt.o UNIXkbd.o
+all: clean  primitiveRTX UNIXcrt.o UNIXkbd.o
 
 clean:
 	@echo "Cleaning object files.."
-	rm -rf $(Targets) primitiveRTX.o UNIXcrt.o UNIXkbd.o
+	rm -rf $(Targets) primitiveRTX UNIXcrt.o UNIXkbd.o
 	@echo "..object files removed."
 
-primitiveRTX.o: $(Targets)
+primitiveRTX: $(Targets)
 	@echo "Compiling primitiveRTX"
-	gcc -o $(Targets) $@
+	gcc -o primitiveRTX $(Targets)
 
 UNIXcrt.o: UNIXcrt.c
 	@echo "Compiling UNIXcrt"
