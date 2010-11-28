@@ -72,8 +72,8 @@ char * debugMessageType(int Type);
  
  //////////ATOMICITY /////////////////
  
- sigset_t oldmask;
- sigset_t newmask;
+ //sigset_t oldmask;
+ //sigset_t newmask;
  int atomicCount; 
 
 //////////////// HELPER PROCESS KEYBOARD INITIALIZATION //////////////////

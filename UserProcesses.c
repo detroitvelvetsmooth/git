@@ -127,8 +127,12 @@ void ProcessC(){
 
 void NullProcess(){
 //Infinite Loop    
-            
+     int k;
      do{
+		   k++;
+		   k--;
+		   k++;
+		   k--;
            release_processor();
      }while(1);
 }
@@ -141,7 +145,9 @@ void CCI()
 	int check_result;
 	char tempChar;
 	struct messageEnvelope *temp;
+	//printf("Requesting Env.\n");
 	temp = request_message_env(); //ONLY REQUESTS ONE ENVELOPE TOTAL. 
+	//printf("Got env.\n");
 	temp ->PIDSender = PIDcci;
 	temp ->messageType = (int)MSGTYPEDATA;
 	
@@ -150,9 +156,9 @@ void CCI()
 	
 		strcpy(temp->messageText, "CCI:\0"); 
 		send_console_chars(temp);
-		
+		//printf("Receiving ACK.\n");
 		temp = receive_message(); //GETS THE MESSAGE BACK FROM THE CRT. 
-		
+		//printf("Received ACK.\n");
 		get_console_chars(temp);
 		temp = receive_message(); //assuming KB iProcess sends env    back to process //GETS THE MESSAGE BACK FROM THE KEYBOARD IPROCESS.
 		

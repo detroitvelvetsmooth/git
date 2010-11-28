@@ -74,7 +74,7 @@ int TimingListEnqueue(struct messageEnvelope* env){
 }
     
 void iProcessAlarm(){
-/*	 printf("Turning Atomic ON - iProcessAlarm\n");*/
+	//printf("Turning Atomic ON - iProcessAlarm\n");
     atomic(1);
 		
     struct PCB* temp = ptrCurrentExecuting;
@@ -111,6 +111,7 @@ void iProcessAlarm(){
 
    //preemptive();
    atomic(0);
+   //printf("Turning atomic off. IprocessAlarm.\n");
 }
 
 void iProcessCRT(){ 

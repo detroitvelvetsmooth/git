@@ -19,12 +19,14 @@ void add_to_traceBuffer(struct messageEnvelope* temp, int traceBufferNumber);//t
 ///////////// KPRIMITIVES ///////////////////
 
 void k_process_switch(){
-
  struct	PCB* next_PCB = ReadyProcessDequeue(); //finds the next pcb to execute with the highest priority.
 	next_PCB->PCBState = EXECUTING;
 /*	printf("k_process_switch: Switching To: %s\n", debugProcessName(next_PCB->PID));*/
-																	
+	atomic(0); 							
 	context_switch(next_PCB);// SINCE PTRCURRENTEXECUTING IS A GLOBAL PARAMETER WE DON'T NEED TO PASS IT IN. HOWEVER WE MUST MAKE SURE THAT IT IS POINTING TO WHAT WE WANT TO EXECUTE.->Or for this case, pointing to what used to be executing
+	atomic(1);
+
+
 }
 	
 struct messageEnvelope* k_request_message_env( ){
@@ -39,9 +41,9 @@ struct messageEnvelope* k_request_message_env( ){
       if(result !=1)
       printf("In k_request_message_env: Enqueue function failed to return correctly\n");
       
-      atomic(0); //need to fix atomic on/off because you are jumping to another place
+      
       k_process_switch(); 
-      atomic(1);
+
     }
    
     temp = ptrMessage;
@@ -105,7 +107,6 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
 	temp->PIDSender = ptrCurrentExecuting->PID;
 	temp->PIDReceiver = dest_process_id;
 
-
 	struct PCB *receiver;
         receiver = getPCB(dest_process_id);
         /*
@@ -149,13 +150,14 @@ int k_send_message( int dest_process_id, struct messageEnvelope* temp ){
                     result = Enqueue(tempPCB, ptrPCBReadyMed);
                 else if(tempPCB->processPriority == LOW_PRIORITY)
                     result = Enqueue(tempPCB, ptrPCBReadyLow);
-                else
-                    result = Enqueue(tempPCB, ptrPCBReadyNull);
+				else{
+					result = Enqueue(tempPCB, ptrPCBReadyNull);
                 if(result != 1){
                     printf("Inside k_send_message: The Enqueue function on the receiving PCB to its ready Q did not return 1. ERROR. \n");
-                }
-            }
-        }
+				}
+				}
+			}
+		}
 
 	//Add sender, receiver, message type information to trace buffer. 
 	sprintf(temp->messageTimeStamp, "%d", absoluteTime); //TimeStamp it once sending is complete.
@@ -226,9 +228,9 @@ struct messageEnvelope* k_receive_message( )
        if (result != 1)
            printf("Inside k_receive_message_env: The invoking PCB is meant to be blocked. The Enqueue function was unable to enqueue the PCB to the Blocked on Receive Q.\n");
        
-       atomic(0); //MAY OR MAY NOT WORK
+
        k_process_switch();//Call Process_switch();
-       atomic(1);	// MAY OR MAY NOT WORKS
+
    }   
    
     if(ptrCurrentExecuting->ptrMessageInboxHead->ptrNextMessage==NULL) //Inbox is size 1
@@ -283,9 +285,9 @@ int  k_release_processor( )
 	else if(ptrCurrentExecuting->processPriority == NULL_PRIORITY)
 	Enqueue(ptrCurrentExecuting,ptrPCBReadyNull);
 	
-	atomic(0);
+	//printf("Current Executing PID: %d.\n", ptrCurrentExecuting->PID);
 	k_process_switch();
-	atomic(1);
+
 	return 1;
 }
 
@@ -353,13 +355,16 @@ int  k_change_priority(int new_priority, int targetID){
               result = Enqueue(movingPCB, ptrPCBReadyMed);
           else if(new_priority == LOW_PRIORITY)
               result = Enqueue(movingPCB, ptrPCBReadyLow);
-          else
-              result = Enqueue(movingPCB, ptrPCBReadyNull);
-          if(result != 1){
+		  else{
+              printf("Enqueing to NULL Ready Q.\n");
+			  result = Enqueue(movingPCB, ptrPCBReadyNull);
+
+			  if(result != 1){
               printf("Inside k_change_priority: The PCB was not properly enqueued to its ready Q. ERROR./n");
-          }
-    }
-    temp->processPriority = new_priority;
+              }
+		  }
+    }  
+	temp->processPriority = new_priority;
     return 1;
 }
 
@@ -433,7 +438,7 @@ int k_get_trace_buffers( struct messageEnvelope * temp){
 /////////////PRIMITIVE HELPER FUNCTIONS //////////////////////
 
 void context_switch(struct PCB* next_PCB){
-
+	
 	int return_code = setjmp(ptrCurrentExecuting->contextBuffer);
 	
 	if(return_code == 0){
@@ -445,38 +450,32 @@ void context_switch(struct PCB* next_PCB){
 
 void atomic(int on) {
 
-	//printf("atomic was called\n");
-     
-    static sigset_t oldmask;
-    	   sigset_t newmask;
-    if (on==1) {
-       atomic_count++;
-       if (atomic_count == 1) { //Check to see if atomic isn't already on
-          sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
+	//printf("Currently Executing Process: %d\n", ptrCurrentExecuting->PID);
+    
+static sigset_t oldmask;
+sigset_t newmask;
+if (on == 1) {
+	atomic_count++;
+	//printf("Atomic count is: %d.\n", atomic_count);
+	if (atomic_count == 1) { //Check to see if atomic isn't already on
+		//printf("Masking signals.\n");
+		sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
+		sigaddset(&newmask, 14); //the alarm signal
+		sigaddset(&newmask, 2); // the CNTRL-C
+		sigaddset(&newmask, SIGUSR1);
+		sigaddset(&newmask, SIGUSR2);
+		sigprocmask(SIG_BLOCK, &newmask, &oldmask); //Oldmask saves the signals being blocked
+	}
+}
+else {
+		atomic_count--;
+		//printf("Atomic count is: %d.\n", atomic_count);
+	if (atomic_count == 0) { //Check to see if atomic can be turned off
+		//printf("Unmasking signals.\n");
+		sigprocmask(SIG_SETMASK, &oldmask, NULL);
+	}
+}
 
-	if(atomicCount==0&&on==1)  //atomic must be turned on because it was off.
-	{	
-//		printf("Atomic Turned On\n");
-		  sigemptyset(&newmask); //Initialize Newmask. Add appropriate signals to mask.
-          sigaddset(&newmask, 14); //the alarm signal
-          sigaddset(&newmask, 2); // the CNTRL-C
-          sigaddset(&newmask, SIGUSR1);
-          sigaddset(&newmask, SIGUSR2);
-          sigprocmask(SIG_BLOCK, &newmask, &oldmask); //Oldmask saves the signals being blocke
-	}
-	else if(atomicCount==1&&on==0) //atomicCount is 1 but we want to turn atomic off now. 
-	{
-//		printf("Atomic Turned OFF\n");
-	  	sigprocmask(SIG_SETMASK, &oldmask, NULL);
-	}
-	
-	if(on==1) // update our values. regardless if we are turning it on or off. 
-	atomicCount++;
-	else
-	atomicCount--;
-	
-}
-}
 }  	   
 
 struct PCB * getPCB(int findPID)

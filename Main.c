@@ -16,11 +16,11 @@ absoluteTime = 0;
 relativeTime = 0; // the wallclock will initially commence at the same time as the absoluteTime
 displayWallClock= 0;
 
-atomic_count = 0;
+
 ptrTimingList=NULL; // pointer to messages that have the timing countdown. 
 
 ///////////ATOMICITY ///////////////
-atomicCount = 0;
+atomic_count = 0;
 //oldmask = NULL;
 //newmask = NULL; //UNSURE IF THIS IS HOW YOU DEFINE IT. 
 
@@ -82,8 +82,7 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
 	
 		
 	 signalAssociation(); //Will associate signals with the signal handler who will in turn call the corresponding i process
-	 ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
-	
+
      ptrPCBList = initializeProcessPCB();   //Will use the initialization table to generate the PCBs and link them in a linked list and will initialize the context for the process.
      initializeProcessReadyQueue();
 
@@ -94,6 +93,7 @@ ptrMessageTail = NULL;  //will be used as pointers to the head and tail of the m
    
      initializeProcessContext();  //Will actually initialize the context of each method.
      initializeProcessReadyQueue();
+	 ualarm(alarmDelayTime, alarmFrequency); //sets Ualarm to start running. Used for the timing services.
 	
 	 longjmp(ptrCurrentExecuting->contextBuffer,1);//WILL JUMP TO THE FIRST EXECUTION.	
 	
